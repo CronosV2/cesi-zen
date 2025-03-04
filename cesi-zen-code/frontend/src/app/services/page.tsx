@@ -1,4 +1,13 @@
+import Link from 'next/link'
+
 export default function Services() {
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Traitement du formulaire
+    router.push('/thank-you'); // Redirection
+  };
+
   return (
     <div className="pt-24 px-4 max-w-7xl mx-auto">
       <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-purple-500 to-pink-500 inline-block text-transparent bg-clip-text">
@@ -12,6 +21,7 @@ export default function Services() {
           </div>
         ))}
       </div>
+      <Link href="/about">À propos</Link>
     </div>
   );
 } 
