@@ -26,7 +26,7 @@ export default function Register() {
   return (
     <div className="min-h-screen pt-24 px-4">
       <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold text-center mb-6 text-blue-500">
+        <h1 className="text-2xl font-bold text-center mb-6 text-cyan-300">
           Inscription
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,7 +84,7 @@ export default function Register() {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200"
+            className="w-full bg-cyan-300 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200"
           >
             S'inscrire
           </button>
