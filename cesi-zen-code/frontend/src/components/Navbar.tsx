@@ -96,7 +96,7 @@ const Navbar = () => {
                         <Link
                           key={subItem.href}
                           href={subItem.href}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-500 transition-colors duration-200"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-cyan-300 transition-colors duration-200"
                         >
                           {subItem.label}
                         </Link>
@@ -112,7 +112,7 @@ const Navbar = () => {
           <div className="hidden md:flex md:items-center md:space-x-4">
             <Link
               href="/login"
-              className="px-4 py-2 text-base font-medium text-black hover:text-blue-500 transition-all duration-200"
+              className="px-4 py-2 text-base font-medium text-black hover:text-cyan-300 transition-all duration-200"
             >
               Connexion
             </Link>
@@ -134,7 +134,7 @@ const Navbar = () => {
               <div key={item.href}>
                 <Link
                   href={item.href}
-                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-cyan-300 hover:bg-gray-50 rounded-md"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.label}
@@ -145,7 +145,7 @@ const Navbar = () => {
                       <Link
                         key={subItem.href}
                         href={subItem.href}
-                        className="block px-3 py-2 text-sm text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                        className="block px-3 py-2 text-sm text-gray-600 hover:text-cyan-300 hover:bg-gray-50 rounded-md"
                         onClick={() => setIsOpen(false)}
                       >
                         {subItem.label}
@@ -158,7 +158,7 @@ const Navbar = () => {
             <div className="pt-4 pb-3 border-t border-gray-200">
               <Link
                 href="/login"
-                className="block px-3 py-2 text-base font-medium text-center text-gray-700 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                className="block px-3 py-2 text-base font-medium text-center text-gray-700 hover:text-cyan-300 hover:bg-gray-50 rounded-md"
                 onClick={() => setIsOpen(false)}
               >
                 Connexion
