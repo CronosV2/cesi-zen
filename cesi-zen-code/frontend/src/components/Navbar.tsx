@@ -57,7 +57,8 @@ export default function Navbar() {
             <div 
               className="relative group"
             >
-              <div
+              <Link
+                href="/outils"
                 className="text-[#00ffec] hover:text-blue-500 transition-colors flex items-center cursor-pointer"
               >
                 Nos outils
@@ -69,7 +70,7 @@ export default function Navbar() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-              </div>
+              </Link>
               <div
                 className="absolute top-full left-0 w-48 bg-background rounded-lg shadow-lg transition-all duration-200 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0"
               >
