@@ -39,6 +39,42 @@ const tools = [
     className: 'md:col-span-2',
   },
   {
+    title: 'Mon Espace',
+    description: '',
+    href: '/profil',
+    icon: (
+      <div className="flex flex-col space-y-3 -mt-2">
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <svg className="w-14 h-14" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-card"></span>
+          </div>
+          <div className="flex flex-col">
+            <h3 className="text-lg font-semibold">Nathan Darte</h3>
+            <p className="text-sm text-foreground/70">Étudiant CESI</p>
+          </div>
+        </div>
+        <div className="flex justify-between items-center bg-border/10 rounded-lg p-2">
+          <div className="text-center">
+            <p className="text-sm text-foreground/70">Niveau</p>
+            <p className="text-lg font-semibold">5</p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-foreground/70">Exercice réalisé</p>
+            <p className="text-lg font-semibold">15</p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-foreground/70">Stress</p>
+            <p className="text-lg text-red-500 font-semibold">Enorme</p>
+          </div>
+        </div>
+      </div>
+    ),
+    className: 'md:col-span-1 md:row-span-2  md:-mt-42',
+  },
+  {
     title: 'Musique',
     description: 'Écoutez des musiques apaisantes',
     href: '/outils/musique',
@@ -47,7 +83,7 @@ const tools = [
         <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
       </svg>
     ),
-    className: 'md:col-span-1',
+    className: 'md:col-span-2',
   },
 ];
 
