@@ -14,11 +14,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
-      <body>
-        <Navbar />
-        {children}
-        <Footer />
+    <html lang="fr" className="dark">
+      <body className="bg-background text-foreground antialiased">
+        <div className="relative flex min-h-screen flex-col">
+          <Navbar />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
