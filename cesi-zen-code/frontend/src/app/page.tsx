@@ -7,14 +7,6 @@ export default function Home() {
       <Navbar />
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] pt-24">
         <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-          <Image
-            className="dark:invert"
-            src="/next.svg"
-            alt="Next.js logo"
-            width={180}
-            height={38}
-            priority
-          />
 {/*           <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
             <li className="mb-2">
               Get started by editing{" "}
@@ -53,28 +45,22 @@ export default function Home() {
           </div> */}
 
           { <div className="flex gap-4 items-center flex-col sm:flex-row">
-              <a 
-                href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative overflow-hidden rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-3 transition-all duration-300 ease-out hover:scale-105 hover:shadow-lg hover:from-purple-600 hover:to-pink-600 flex items-center gap-3"
-              >
-                <Image
+{/*                 <Image
                   src="/vercel.svg"
                   alt="Vercel logomark"
                   width={20}
                   height={20}
                   className="transform transition-transform duration-300 group-hover:rotate-180"
-                />
-                <span className="font-semibold text-white relative z-10">
+                /> */}
+{/*                 <span className="font-semibold text-white relative z-10">
                   Clique ici
                   <span className="absolute bottom-0 left-0 h-0.5 w-full bg-white transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100"></span>
-                </span>
-                <div className="absolute inset-0 bg-white/20 transform translate-y-full transition-transform duration-300 group-hover:translate-y-0"></div>
-              </a>
+                </span> */}
+             {/*    <div className="absolute inset-0 bg-white/20 transform translate-y-full transition-transform duration-300 group-hover:translate-y-0"></div> */}
+              
           </div>}
         </main>
-        <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
+       {/*  <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
           <a
             className="flex items-center gap-2 hover:underline hover:underline-offset-4"
             href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
@@ -120,7 +106,7 @@ export default function Home() {
             />
             Go to nextjs.org →
           </a>
-        </footer>
+        </footer> */}
       </div>
     </>
   );
