@@ -8,10 +8,8 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { label: 'Accueil', href: '/' },
     { label: 'À propos', href: '/about' },
-    { label: 'Services', href: '/services' },
-    { label: 'Contact', href: '/contact' },
+    { label: 'Nos outils', href: '/outils' },
   ];
 
   return (
