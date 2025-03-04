@@ -3,7 +3,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/context/ThemeContext";
-import { marianne } from "./fonts";
+import { marianne } from "../app/fonts";
 
 export const metadata: Metadata = {
   title: "CESI Zen - Bien-être et développement personnel",

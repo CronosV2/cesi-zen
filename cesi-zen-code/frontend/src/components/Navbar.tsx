@@ -160,7 +160,7 @@ export default function Navbar() {
             transitionProperty: 'opacity, transform, visibility',
           }}
         >
-          <div className="mx-4 py-4 space-y-4 bg-card/95 backdrop-blur-sm rounded-lg shadow-lg border border-border/50">
+          <div className="mx-4 py-4 space-y-4 bg-card backdrop-blur-none rounded-lg shadow-lg border border-border/50">
             <div className="flex justify-center">
               <ThemeToggle />
             </div>
