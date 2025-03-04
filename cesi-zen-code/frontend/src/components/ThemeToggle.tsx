@@ -1,35 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-
-  useEffect(() => {
-    // Vérifier le thème initial
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-  };
+  const { theme, setTheme } = useTheme();
 
   return (
     <button
-      onClick={toggleTheme}
-      className="p-2 rounded-lg bg-card border border-border hover:bg-primary/10 transition-colors"
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      className="p-2 text-primary rounded-lg hover:text-blue-500 transition-colors"
       aria-label="Toggle theme"
     >
       {theme === 'dark' ? (
         <svg
-          className="w-5 h-5 text-foreground"
+          className="w-6 h-6"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -43,7 +27,7 @@ export default function ThemeToggle() {
         </svg>
       ) : (
         <svg
-          className="w-5 h-5 text-foreground"
+          className="w-6 h-6"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
