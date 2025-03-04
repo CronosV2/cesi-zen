@@ -59,16 +59,16 @@ export default function BentoGrid() {
           <Link
             key={tool.href}
             href={tool.href}
-            className={`group relative overflow-hidden rounded-2xl bg-card/50 border border-border p-4 shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-[#00ffec]/20 ${tool.className}`}
+            className={`group relative overflow-hidden rounded-2xl bg-card/50 border border-border p-4 shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-primary/20 ${tool.className}`}
           >
             <div className="relative z-10">
-              <div className="text-[#00ffec] mb-4">{tool.icon}</div>
-              <h3 className="text-xl font-semibold mb-2 text-[#00ffec] group-hover:text-blue-500 transition-colors">
+              <div className="text-primary mb-4">{tool.icon}</div>
+              <h3 className="text-xl font-semibold mb-2 text-primary group-hover:text-blue-500 transition-colors">
                 {tool.title}
               </h3>
               <p className="text-foreground">{tool.description}</p>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-br from-[#00ffec]/0 to-[#00ffec]/0 group-hover:from-[#00ffec]/10 group-hover:to-[#00ffec]/10 transition-all duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/0 group-hover:from-primary/10 group-hover:to-primary/10 transition-all duration-300" />
           </Link>
         ))}
       </div>
