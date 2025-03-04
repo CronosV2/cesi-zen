@@ -3,6 +3,10 @@
 # dependencies
 frontend/node_modules
 
+# fonts
+frontend/src/app/fonts/*.woff
+frontend/src/app/fonts/*.woff2
+
 # testing
 /coverage
 
