@@ -152,24 +152,28 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         <div
-          className={`md:hidden transition-all duration-300 ${
-            isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          } overflow-hidden`}
+          className={`md:hidden fixed left-0 right-0 top-20 transition-all duration-300 ease-in-out ${
+            isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+          }`}
+          style={{
+            visibility: isMenuOpen ? 'visible' : 'hidden',
+            transitionProperty: 'opacity, transform, visibility',
+          }}
         >
-          <div className="py-4 space-y-4 bg-background rounded-lg mt-2">
+          <div className="mx-4 py-4 space-y-4 bg-card/95 backdrop-blur-sm rounded-lg shadow-lg border border-border/50">
             <div className="flex justify-center">
               <ThemeToggle />
             </div>
             <Link
               href="/"
-              className="block px-4 text-[#00ffec] hover:text-foreground transition-colors"
+              className="block px-6 py-2 text-[#00ffec] hover:text-foreground transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
               Accueil
             </Link>
             <div className="space-y-2">
               <button
-                className="w-full px-4 text-left text-[#00ffec] hover:text-foreground transition-colors flex items-center justify-between"
+                className="w-full px-6 py-2 text-left text-[#00ffec] hover:text-foreground transition-colors flex items-center justify-between"
                 onClick={() => setIsToolsOpen(!isToolsOpen)}
               >
                 Nos outils
@@ -185,55 +189,57 @@ export default function Navbar() {
                 </svg>
               </button>
               <div
-                className={`pl-8 space-y-2 transition-all duration-300 ${
-                  isToolsOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
-                } overflow-hidden`}
+                className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                  isToolsOpen ? 'max-h-[200px] opacity-100' : 'max-h-0 opacity-0'
+                }`}
               >
-                <Link
-                  href="/outils/meditation"
-                  className="block text-[#00ffec] hover:text-foreground transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Méditation
-                </Link>
-                <Link
-                  href="/outils/journal"
-                  className="block text-[#00ffec] hover:text-foreground transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Journal
-                </Link>
-                <Link
-                  href="/outils/exercices"
-                  className="block text-[#00ffec] hover:text-foreground transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Exercices
-                </Link>
-                <Link
-                  href="/outils/musique"
-                  className="block text-[#00ffec] hover:text-foreground transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Musique
-                </Link>
+                <div className="py-2 px-8 space-y-3">
+                  <Link
+                    href="/outils/meditation"
+                    className="block text-[#00ffec] hover:text-foreground transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Méditation
+                  </Link>
+                  <Link
+                    href="/outils/journal"
+                    className="block text-[#00ffec] hover:text-foreground transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Journal
+                  </Link>
+                  <Link
+                    href="/outils/exercices"
+                    className="block text-[#00ffec] hover:text-foreground transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Exercices
+                  </Link>
+                  <Link
+                    href="/outils/musique"
+                    className="block text-[#00ffec] hover:text-foreground transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Musique
+                  </Link>
+                </div>
               </div>
             </div>
             <Link
               href="/services"
-              className="block px-4 text-[#00ffec] hover:text-foreground transition-colors"
+              className="block px-6 py-2 text-[#00ffec] hover:text-foreground transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
               Services
             </Link>
             <Link
               href="/contact"
-              className="block px-4 text-[#00ffec] hover:text-foreground transition-colors"
+              className="block px-6 py-2 text-[#00ffec] hover:text-foreground transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
               Contact
             </Link>
-            <div className="pt-4 px-4 space-y-2 border-t border-border">
+            <div className="pt-4 px-6 space-y-3 border-t border-border/50">
               <Link
                 href="/login"
                 className="block text-[#00ffec] hover:text-foreground transition-colors"
@@ -243,7 +249,7 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/register"
-                className="block bg-[#00ffec] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition-colors text-center"
+                className="block bg-[#00ffec] text-background px-4 py-2 rounded-lg hover:bg-blue-500 transition-colors text-center"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Inscription
