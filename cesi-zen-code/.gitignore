@@ -6,7 +6,7 @@ frontend/node_modules/
 backend/node_modules/
 
 # environment variables
-cesi-zen-code/backend/.env
+.env
 cesi-zen-code/.env
 cesi-zen-code/.env.local
 cesi-zen-code/.env.development.local
