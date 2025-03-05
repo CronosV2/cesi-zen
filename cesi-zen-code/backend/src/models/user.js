@@ -5,31 +5,21 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  email: {
+  status: {
     type: String,
-    required: true,
-    unique: true
+    default: "Étudiant CESI"
   },
   level: {
     type: Number,
-    default: 1
+    default: 5
+  },
+  exercicesCompleted: {
+    type: Number,
+    default: 15
   },
   stressLevel: {
-    type: Number,
-    default: 0
-  },
-  healthStatus: {
     type: String,
-    enum: ['Excellent', 'Good', 'Fair', 'Poor'],
-    default: 'Good'
-  },
-  achievements: [{
-    name: String,
-    unlockedAt: Date
-  }],
-  meditationTime: {
-    type: Number,
-    default: 0
+    default: "Enorme"
   }
 }, {
   timestamps: true
