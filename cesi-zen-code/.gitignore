@@ -6,12 +6,13 @@ frontend/node_modules/
 backend/node_modules/
 
 # environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-backend/.env
+cesi-zen-code/backend/.env
+cesi-zen-code/.env
+cesi-zen-code/.env.local
+cesi-zen-code/.env.development.local
+cesi-zen-code/.env.test.local
+cesi-zen-code/.env.production.local
+cesi-zen-code/backend/.env
 frontend/.env
 
 # fonts
