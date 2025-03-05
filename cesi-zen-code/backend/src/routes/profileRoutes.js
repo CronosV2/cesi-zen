@@ -9,7 +9,7 @@ router.get('/test', async (req, res) => {
     let profile = await User.findOne();
     if (!profile) {
       profile = await User.create({
-        name: "Nathan Darte",
+        name: "Utilisateur CESI",
         status: "Étudiant CESI",
         level: 5,
         exercicesCompleted: 15,
@@ -32,7 +32,7 @@ router.post('/test', async (req, res) => {
     const profile = await User.findOneAndUpdate(
       {}, // premier document trouvé
       {
-        name: name || "Nathan Darte",
+        name: name || "Utilisateur CESI",
         status: status || "Étudiant CESI",
         level: level || 5,
         exercicesCompleted: exercicesCompleted || 15,
