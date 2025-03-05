@@ -71,7 +71,7 @@ export default function BentoGrid() {
               <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-card"></span>
             </div>
             <div className="flex flex-col">
-              <h3 className="text-lg font-semibold">{profileData?.name || "Nathan Darte"}</h3>
+              <h3 className="text-lg font-semibold">{profileData?.name || "John Doe"}</h3>
               <p className="text-sm text-foreground/70">{profileData?.status || "Étudiant CESI"}</p>
             </div>
           </div>
