@@ -1,28 +1,53 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: {
+  email: {
     type: String,
-    required: true
+    required: [true, 'Email requis'],
+    unique: true,
+    lowercase: true,
+    trim: true,
   },
-  status: {
+  password: {
     type: String,
-    default: "Étudiant CESI"
+    required: [true, 'Mot de passe requis'],
+    minlength: 6,
+    select: false, // Ne pas renvoyer le mot de passe par défaut
   },
-  level: {
-    type: Number,
-    default: 5
-  },
-  exercicesCompleted: {
-    type: Number,
-    default: 15
-  },
-  stressLevel: {
+  firstName: {
     type: String,
-    default: "Enorme"
-  }
+    required: [true, 'Prénom requis'],
+    trim: true,
+  },
+  lastName: {
+    type: String,
+    required: [true, 'Nom requis'],
+    trim: true,
+  },
+  role: {
+    type: String,
+    enum: ['student', 'admin'],
+    default: 'student',
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
 }, {
   timestamps: true
 });
 
-module.exports = mongoose.model('User', userSchema);
+// Hash du mot de passe avant sauvegarde
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 12);
+  next();
+});
+
+// Méthode pour vérifier le mot de passe
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
+module.exports = mongoose.model('User', userSchema); 

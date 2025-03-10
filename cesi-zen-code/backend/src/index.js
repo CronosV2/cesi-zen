@@ -2,50 +2,64 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const profileRoutes = require('./routes/profileRoutes');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 
-// Configurer dotenv avec le chemin explicite
+// Configuration dotenv
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-console.log('Current directory:', __dirname);
-console.log('Environment variables:', process.env);
-
-// Importer les routes correctement
-const userRoutes = require('./routes/userRoutes.js');
+// Import des routes
+const profileRoutes = require('./routes/profileRoutes');
+const authRoutes = require('./routes/authRoutes'); // À créer
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Middlewares
+app.use(helmet()); // Sécurité
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true // Important pour les cookies
+}));
+app.use(cookieParser());
 app.use(express.json());
+
+// Connexion MongoDB
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('MongoDB connecté avec succès');
+  } catch (error) {
+    console.error('Erreur de connexion MongoDB:', error.message);
+    process.exit(1);
+  }
+};
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/profile', profileRoutes);
 
-// Vérification de l'URI MongoDB
-const MONGODB_URI = process.env.MONGODB_URI;
-if (!MONGODB_URI) {
-  console.error('MONGODB_URI is not defined in .env file');
-  console.error('Make sure .env file exists in:', path.join(__dirname, '../.env'));
-  process.exit(1);
-}
-
-// Test route
-app.get('/', (req, res) => {
-  res.json({ message: 'API is working' });
+// Gestion des erreurs globale
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    success: false, 
+    message: 'Une erreur est survenue',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
-// Utiliser les routes
-app.use('/api/users', userRoutes);  // userRoutes est un Router Express
-
-// Start server
+// Démarrage du serveur
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  
-  // MongoDB connection avec string explicite
-  mongoose.connect(String(MONGODB_URI))
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => {
-      console.error('MongoDB connection error:', err);
-      process.exit(1);
+const startServer = async () => {
+  try {
+    await connectDB();
+    app.listen(PORT, () => {
+      console.log(`Serveur démarré sur le port ${PORT}`);
     });
-});
+  } catch (error) {
+    console.error('Erreur de démarrage du serveur:', error);
+  }
+};
+
+startServer(); 
