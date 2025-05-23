@@ -152,6 +152,13 @@ export default function ProfilePage() {
     setError('');
     setSuccess('');
     
+    console.log('Tentative de changement de mot de passe:', { 
+      ...passwordData, 
+      currentPassword: '***', 
+      newPassword: '***', 
+      confirmPassword: '***' 
+    });
+    
     // Vérifier que les nouveaux mots de passe correspondent
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setError('Les nouveaux mots de passe ne correspondent pas');
@@ -167,11 +174,14 @@ export default function ProfilePage() {
     setLoading(true);
     
     try {
+      console.log('Envoi de la requête de changement de mot de passe...');
       const response = await axios.post(
         'http://localhost:5001/api/profile/change-password',
         passwordData,
         { withCredentials: true }
       );
+
+      console.log('Réponse reçue:', response.data);
 
       if (response.data.success) {
         setSuccess('Mot de passe modifié avec succès');
@@ -181,10 +191,28 @@ export default function ProfilePage() {
           newPassword: '',
           confirmPassword: ''
         });
+      } else {
+        // Si le serveur renvoie un succès=false avec un message
+        setError(response.data.message || 'Erreur lors du changement de mot de passe');
       }
     } catch (err: any) {
-      console.error('Erreur lors du changement de mot de passe:', err);
-      setError(err.response?.data?.message || 'Erreur lors du changement de mot de passe');
+      console.error('Erreur détaillée lors du changement de mot de passe:', err);
+      
+      // Afficher les détails de l'erreur pour le débogage
+      if (err.response) {
+        // Le serveur a répondu avec un statut d'erreur
+        console.error('Données de réponse:', err.response.data);
+        console.error('Statut HTTP:', err.response.status);
+        setError(err.response.data.message || `Erreur ${err.response.status}: Échec du changement de mot de passe`);
+      } else if (err.request) {
+        // La requête a été envoyée mais pas de réponse
+        console.error('Pas de réponse reçue du serveur');
+        setError('Le serveur ne répond pas. Veuillez réessayer plus tard.');
+      } else {
+        // Erreur lors de la configuration de la requête
+        console.error('Erreur de configuration:', err.message);
+        setError(`Erreur: ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }

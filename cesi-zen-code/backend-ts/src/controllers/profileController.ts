@@ -149,77 +149,131 @@ export const updateProfileData = async (req: Request, res: Response): Promise<vo
  */
 export const changePassword = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log('🔹 Tentative de changement de mot de passe');
     const userId = req.userId;
     
+    console.log('🔹 Vérification de l\'authentification - UserId:', userId ? 'Présent' : 'Absent');
     if (!userId) {
+      console.log('❌ Changement de mot de passe échoué - Utilisateur non authentifié');
       res.status(401).json({ success: false, message: 'Non authentifié' });
       return;
     }
 
     const { currentPassword, newPassword, confirmPassword } = req.body;
+    console.log('🔹 Données reçues:', { 
+      currentPassword: currentPassword ? '[MASQUÉ]' : undefined,
+      newPassword: newPassword ? '[MASQUÉ]' : undefined,
+      confirmPassword: confirmPassword ? '[MASQUÉ]' : undefined
+    });
 
     // Vérifier que tous les champs sont présents
     if (!currentPassword || !newPassword || !confirmPassword) {
+      console.log('❌ Changement de mot de passe échoué - Données manquantes');
       res.status(400).json({ 
         success: false, 
         message: 'Tous les champs sont requis (mot de passe actuel, nouveau mot de passe, confirmation)' 
       });
       return;
     }
+    console.log('🔹 Vérification des champs réussie - Tous les champs sont présents');
 
     // Vérifier que les nouveaux mots de passe correspondent
     if (newPassword !== confirmPassword) {
+      console.log('❌ Changement de mot de passe échoué - Les mots de passe ne correspondent pas');
       res.status(400).json({ 
         success: false, 
         message: 'Le nouveau mot de passe et sa confirmation ne correspondent pas' 
       });
       return;
     }
+    console.log('🔹 Vérification de correspondance réussie - Les mots de passe correspondent');
 
     // Vérifier la longueur minimale du mot de passe
     if (newPassword.length < 6) {
+      console.log('❌ Changement de mot de passe échoué - Mot de passe trop court');
       res.status(400).json({ 
         success: false, 
         message: 'Le nouveau mot de passe doit contenir au moins 6 caractères' 
       });
       return;
     }
+    console.log('🔹 Vérification de longueur réussie - Mot de passe suffisamment long');
 
     // Récupérer l'utilisateur avec son mot de passe
+    console.log(`🔹 Recherche de l'utilisateur dans la base de données - ID: ${userId}`);
     const user = await User.findById(userId).select('+password');
     
     if (!user) {
+      console.log(`❌ Changement de mot de passe échoué - Utilisateur non trouvé avec l'ID: ${userId}`);
       res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
+      return;
+    }
+    
+    console.log(`🔹 Utilisateur trouvé - Vérification du champ password: ${user.password ? 'Présent' : 'Absent'}`);
+    
+    if (!user.password) {
+      console.log('❌ Changement de mot de passe échoué - Champ password manquant');
+      res.status(500).json({ success: false, message: 'Erreur de configuration utilisateur' });
       return;
     }
 
     // Vérifier que le mot de passe actuel est correct
-    const isMatch = await user.comparePassword(currentPassword);
+    console.log('🔹 Vérification du mot de passe actuel');
     
-    if (!isMatch) {
-      res.status(400).json({ success: false, message: 'Mot de passe actuel incorrect' });
+    try {
+      const isMatch = await user.comparePassword(currentPassword);
+      
+      if (!isMatch) {
+        console.log('❌ Changement de mot de passe échoué - Mot de passe actuel incorrect');
+        res.status(400).json({ success: false, message: 'Mot de passe actuel incorrect' });
+        return;
+      }
+      console.log('✅ Mot de passe actuel vérifié avec succès');
+    } catch (err) {
+      console.error('❌ Exception lors de la vérification du mot de passe:', err instanceof Error ? err.message : 'Unknown error');
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erreur lors de la vérification du mot de passe actuel',
+        error: err instanceof Error ? err.message : 'Unknown error'
+      });
       return;
     }
 
     // Hacher le nouveau mot de passe
+    console.log('🔹 Génération du salt pour le hachage du nouveau mot de passe');
     const salt = await bcrypt.genSalt(10);
+    
+    console.log('🔹 Hachage du nouveau mot de passe');
     user.password = await bcrypt.hash(newPassword, salt);
     
     // Sauvegarder l'utilisateur avec le nouveau mot de passe
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: 'Mot de passe modifié avec succès'
-    });
+    console.log('🔹 Sauvegarde de l\'utilisateur avec le nouveau mot de passe');
+    try {
+      await user.save();
+      
+      console.log('✅ Mot de passe modifié avec succès');
+      res.status(200).json({
+        success: true,
+        message: 'Mot de passe modifié avec succès'
+      });
+    } catch (saveErr) {
+      console.error('❌ Erreur lors de la sauvegarde de l\'utilisateur:', saveErr instanceof Error ? saveErr.message : 'Unknown error');
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erreur lors de la sauvegarde du nouveau mot de passe',
+        error: saveErr instanceof Error ? saveErr.message : 'Unknown error'
+      });
+    }
   } catch (error) {
-    console.error('Erreur lors du changement de mot de passe:', error);
+    console.error('❌ Erreur lors du changement de mot de passe:', error instanceof Error ? error.message : 'Unknown error');
     res.status(500).json({ 
       success: false, 
       message: 'Erreur lors du changement de mot de passe',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
+  console.log('Fin de la fonction changePassword');
+
 };
 
 /**
