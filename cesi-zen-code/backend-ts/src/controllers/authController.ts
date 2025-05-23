@@ -23,10 +23,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     const { email, password, firstName, lastName } = req.body;
     
-    // Validation des données
+    // Validation des champs obligatoires uniquement
     if (!email || !password || !firstName || !lastName) {
-      console.log('❌ Inscription échouée - Données manquantes');
-      res.status(400).json({ message: 'Veuillez fournir toutes les informations requises' });
+      console.log('❌ Inscription échouée - Données obligatoires manquantes');
+      res.status(400).json({ message: 'Veuillez fournir les informations obligatoires (email, mot de passe, prénom, nom)' });
       return;
     }
 
@@ -38,14 +38,26 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Créer l'utilisateur
-    console.log(`🔹 Création d'un nouvel utilisateur avec email: ${email}`);
-    const user = await User.create({
+    // Préparer les données utilisateur avec les champs optionnels
+    console.log(`🔹 Préparation des données pour l'utilisateur avec email: ${email}`);
+    const { dateOfBirth, ecole, promotion, ville } = req.body;
+    
+    // Construction de l'objet utilisateur
+    const userData = {
       email,
       password,
       firstName,
-      lastName
-    });
+      lastName,
+      // Ajout des champs optionnels s'ils sont présents
+      ...(dateOfBirth && { dateOfBirth }),
+      ...(ecole && { ecole }),
+      ...(promotion && { promotion }),
+      ...(ville && { ville })
+    };
+    
+    // Création de l'utilisateur
+    console.log(`🔹 Création d'un nouvel utilisateur avec email: ${email}`);
+    const user = await User.create(userData);
 
     console.log(`✅ Utilisateur créé avec succès - ID: ${user._id}`);
 
@@ -67,7 +79,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role
+        role: user.role,
+        level: user.level,
+        exercicesCompleted: user.exercicesCompleted,
+        stressLevel: user.stressLevel,
+        ecole: user.ecole,
+        promotion: user.promotion,
+        ville: user.ville,
+        dateOfBirth: user.dateOfBirth
       }
     });
   } catch (error) {
@@ -131,7 +150,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role
+        role: user.role,
+        level: user.level,
+        exercicesCompleted: user.exercicesCompleted,
+        stressLevel: user.stressLevel,
+        ecole: user.ecole,
+        promotion: user.promotion,
+        ville: user.ville,
+        dateOfBirth: user.dateOfBirth
       }
     });
   } catch (error) {
@@ -185,7 +211,14 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role
+        role: user.role,
+        level: user.level,
+        exercicesCompleted: user.exercicesCompleted,
+        stressLevel: user.stressLevel,
+        ecole: user.ecole,
+        promotion: user.promotion,
+        ville: user.ville,
+        dateOfBirth: user.dateOfBirth
       }
     });
   } catch (error) {
