@@ -3,16 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import axios from 'axios';
-
-// Configuration d'axios avec l'URL de base
-const api = axios.create({
-  baseURL: 'http://localhost:5001/api',
-  withCredentials: true, // Permet de gérer les cookies entre les domaines
-});
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Login() {
   const router = useRouter();
+  const { login } = useAuth(); // Utilisation du contexte d'authentification
   
   // État pour les données du formulaire
   const [formData, setFormData] = useState({
@@ -33,38 +28,25 @@ export default function Login() {
       setIsLoading(true);
       setError('');
       
-      // Appel API au backend pour la connexion avec axios
-      const response = await api.post('/auth/login', {
-        email: formData.email,
-        password: formData.password,
-      });
+      // Utilisation de la fonction login du contexte d'authentification
+      const success = await login(formData.email, formData.password);
       
-      // Avec axios, les données sont directement accessibles via response.data
-      const data = response.data;
-      
-      // Affichage des informations de l'utilisateur connecté dans la console (pour débogage)
-      console.log('Utilisateur connecté:', data.user);
-      
-      // Connexion réussie
-      setSuccess(true);
-      
-      // Redirection après 1 seconde
-      setTimeout(() => {
-        router.push('/'); // Redirection vers la page d'accueil
-      }, 1000);
-      
-    } catch (err) {
-      // Gestion des erreurs avec axios
-      if (axios.isAxiosError(err)) {
-        // Erreur provenant d'axios (erreur réseau ou réponse du serveur avec code d'erreur)
-        const errorMessage = err.response?.data?.message || err.message || 'Erreur lors de la connexion';
-        console.error('Erreur de connexion:', errorMessage);
-        setError(errorMessage);
+      if (success) {
+        // Connexion réussie
+        console.log('Connexion réussie');
+        setSuccess(true);
+        
+        // Redirection après 1 seconde
+        setTimeout(() => {
+          router.push('/'); // Redirection vers la page d'accueil
+        }, 1000);
       } else {
-        // Erreur JavaScript standard
-        console.error('Erreur inattendue:', err);
-        setError(err instanceof Error ? err.message : 'Une erreur inattendue est survenue');
+        setError('Identifiants incorrects');
       }
+    } catch (err) {
+      // Gestion des erreurs
+      console.error('Erreur lors de la connexion:', err);
+      setError(err instanceof Error ? err.message : 'Une erreur lors de la connexion');
     } finally {
       setIsLoading(false);
     }

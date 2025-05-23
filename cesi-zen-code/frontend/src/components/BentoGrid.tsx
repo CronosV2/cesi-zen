@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
+import axios from 'axios';
 
 interface ProfileData {
   name: string;
@@ -10,17 +12,54 @@ interface ProfileData {
   level: number;
   exercicesCompleted: number;
   stressLevel: string;
+  // Nouveaux champs
+  ecole?: string;
+  promotion?: string;
+  ville?: string;
+  dateOfBirth?: string;
+  email?: string;
 }
 
 export default function BentoGrid() {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated } = useAuth(); // Utilisation du contexte d'authentification
 
   useEffect(() => {
-    fetch('http://localhost:5001/api/profile/test')
-      .then(res => res.json())
-      .then(data => setProfileData(data))
-      .catch(err => console.error('Error fetching profile:', err));
-  }, []);
+    const fetchProfileData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Utiliser l'endpoint approprié selon l'état d'authentification
+        const endpoint = isAuthenticated 
+          ? 'http://localhost:5001/api/profile/data'  // Données réelles pour utilisateurs connectés
+          : 'http://localhost:5001/api/profile/test'; // Données de test pour visiteurs
+        
+        const response = await axios.get(endpoint, { 
+          withCredentials: true // Nécessaire pour envoyer les cookies
+        });
+        
+        if (response.data) {
+          console.log('Données de profil chargées:', response.data);
+          setProfileData(response.data);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement du profil:', error);
+        // Charger des données par défaut en cas d'erreur
+        setProfileData({
+          name: "Visiteur",
+          status: "Non connecté",
+          level: 1,
+          exercicesCompleted: 0,
+          stressLevel: "Normal"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProfileData();
+  }, [isAuthenticated]); // Recharger quand l'état d'authentification change
 
   const tools = [
     {
@@ -68,25 +107,37 @@ export default function BentoGrid() {
               <svg className="w-14 h-14" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
               </svg>
-              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-card"></span>
+              <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-gray-400'} border-2 border-card`}></span>
             </div>
             <div className="flex flex-col">
-              <h3 className="text-lg font-semibold">{profileData?.name || "John Doe"}</h3>
-              <p className="text-sm text-foreground/70">{profileData?.status || "Étudiant CESI"}</p>
+              <h3 className="text-lg font-semibold">{profileData?.name || "Visiteur"}</h3>
+              <p className="text-sm text-foreground/70">
+                {profileData?.email ? `${profileData.email}` : ''}
+                {profileData?.status ? ` | ${profileData.status}` : ''}
+              </p>
+              {profileData?.ecole && (
+                <p className="text-xs text-foreground/60">
+                  {profileData.ecole}
+                  {profileData.promotion ? ` - ${profileData.promotion}` : ''}
+                  {profileData.ville ? ` - ${profileData.ville}` : ''}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex justify-between items-center bg-border/10 rounded-lg p-2">
             <div className="text-center">
               <p className="text-sm text-foreground/70">Niveau</p>
-              <p className="text-lg font-semibold">{profileData?.level || 5}</p>
+              <p className="text-lg font-semibold">{profileData?.level || 1}</p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-foreground/70">Exercice réalisé</p>
-              <p className="text-lg font-semibold">{profileData?.exercicesCompleted || 15}</p>
+              <p className="text-sm text-foreground/70">Exercices réalisés</p>
+              <p className="text-lg font-semibold">{profileData?.exercicesCompleted || 0}</p>
             </div>
             <div className="text-center">
               <p className="text-sm text-foreground/70">Stress</p>
-              <p className="text-lg text-red-500 font-semibold">{profileData?.stressLevel || "Enorme"}</p>
+              <p className={`text-lg font-semibold ${profileData?.stressLevel === 'Élevé' ? 'text-red-500' : profileData?.stressLevel === 'Moyen' ? 'text-yellow-500' : 'text-green-500'}`}>
+                {profileData?.stressLevel || "Normal"}
+              </p>
             </div>
           </div>
         </div>
