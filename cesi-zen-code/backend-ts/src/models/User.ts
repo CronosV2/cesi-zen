@@ -9,6 +9,13 @@ export interface IUser {
   lastName: string;
   role: 'student' | 'admin';
   isActive: boolean;
+  dateOfBirth?: string;    // Date de naissance (optionnelle)
+  ecole?: string;          // École (optionnelle)
+  promotion?: string;      // Promotion (optionnelle)
+  ville?: string;          // Ville (optionnelle)
+  level?: number;          // Niveau de l'utilisateur pour la gamification
+  exercicesCompleted?: number; // Nombre d'exercices complétés
+  stressLevel?: string;    // Niveau de stress actuel
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,6 +54,34 @@ const userSchema = new Schema<IUserDocument>(
       type: String,
       required: [true, 'Nom requis'],
       trim: true,
+    },
+    dateOfBirth: {
+      type: String,
+      trim: true,
+    },
+    ecole: {
+      type: String,
+      trim: true,
+    },
+    promotion: {
+      type: String,
+      trim: true,
+    },
+    ville: {
+      type: String,
+      trim: true,
+    },
+    level: {
+      type: Number,
+      default: 1
+    },
+    exercicesCompleted: {
+      type: Number,
+      default: 0
+    },
+    stressLevel: {
+      type: String,
+      default: 'Normal'
     },
     role: {
       type: String,
