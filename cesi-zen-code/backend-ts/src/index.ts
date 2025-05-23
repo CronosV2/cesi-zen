@@ -20,7 +20,7 @@ const app: Express = express();
 // Middlewares
 app.use(helmet()); // Sécurité
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'http://localhost:3001'], // Accepte les deux ports
   credentials: true // Important pour les cookies
 }));
 app.use(cookieParser());
