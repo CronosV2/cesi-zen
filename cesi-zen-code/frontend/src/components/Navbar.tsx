@@ -4,15 +4,28 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import ThemeToggle from './ThemeToggle';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navbar() {
+  // Utilisation du contexte d'authentification
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  
   const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  // Configuration du composant une fois monté
   useEffect(() => {
     setMounted(true);
   }, []);
+  
+  // Fonction de déconnexion avec gestion de l'interface
+  const handleLogout = async () => {
+    await logout();
+    setIsProfileOpen(false);
+    setIsMenuOpen(false);
+  };
 
   if (!mounted) {
     return (
@@ -111,18 +124,75 @@ export default function Navbar() {
           {/* Auth Buttons and Theme Toggle */}
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
-            <Link
-              href="/login"
-              className="text-foreground hover:text-[#00ffec] transition-colors"
-            >
-              Connexion
-            </Link>
-            <Link
-              href="/register"
-              className=" px-4 py-2 rounded-lg text-white"
-            >
-              Inscription
-            </Link>
+            
+            {isLoading ? (
+              // Afficher un spinner de chargement pendant la vérification de l'authentification
+              <div className="w-6 h-6 border-2 border-t-2 border-foreground rounded-full animate-spin" />
+            ) : isAuthenticated ? (
+              // Menu utilisateur pour les utilisateurs connectés
+              <div className="relative">
+                <button 
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-2 text-foreground hover:text-[#00ffec] transition-colors"
+                >
+                  <span>{user?.firstName || 'Utilisateur'}</span>
+                  <svg
+                    className={`ml-1 h-4 w-4 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {/* Menu déroulant du profil */}
+                <div 
+                  className={`absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-lg transition-all duration-200 ${isProfileOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                >
+                  <Link
+                    href="/profil"
+                    className="block px-4 py-2 text-foreground hover:text-[#00ffec] transition-colors rounded-t-lg"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    Mon profil
+                  </Link>
+                  
+                  {user?.role === 'admin' && (
+                    <Link
+                      href="/admin"
+                      className="block px-4 py-2 text-foreground hover:text-[#00ffec] transition-colors"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      Administration
+                    </Link>
+                  )}
+                  
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left block px-4 py-2 text-red-500 hover:text-red-700 transition-colors rounded-b-lg"
+                  >
+                    Déconnexion
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Options d'authentification pour les utilisateurs non connectés
+              <>
+                <Link
+                  href="/login"
+                  className="text-foreground hover:text-[#00ffec] transition-colors"
+                >
+                  Connexion
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-4 py-2 rounded-lg text-white bg-cyan-300 hover:bg-blue-600 transition-colors"
+                >
+                  Inscription
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -164,6 +234,15 @@ export default function Navbar() {
             <div className="flex justify-center">
               <ThemeToggle />
             </div>
+            
+            {/* Afficher les informations de l'utilisateur connecté dans le menu mobile */}
+            {isAuthenticated && (
+              <div className="px-6 py-2 border-b border-border/30">
+                <p className="font-medium text-[#00ffec]">{user?.firstName} {user?.lastName}</p>
+                <p className="text-sm text-foreground/70">{user?.email}</p>
+              </div>
+            )}
+            
             <Link
               href="/"
               className="block px-6 py-2 text-[#00ffec] hover:text-foreground transition-colors"
@@ -225,34 +304,70 @@ export default function Navbar() {
                 </div>
               </div>
             </div>
-            <Link
-              href="/services"
-              className="block px-6 py-2 text-[#00ffec] hover:text-foreground transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Services
-            </Link>
-            <Link
-              href="/contact"
-              className="block px-6 py-2 text-[#00ffec] hover:text-foreground transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Contact
-            </Link>
+            {isAuthenticated ? (
+              // Options pour les utilisateurs connectés (mobile)
+              <>
+                <Link
+                  href="/profil"
+                  className="block px-6 py-2 text-[#00ffec] hover:text-foreground transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Mon profil
+                </Link>
+                
+                {user?.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    className="block px-6 py-2 text-[#00ffec] hover:text-foreground transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Administration
+                  </Link>
+                )}
+                
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full text-left block px-6 py-2 text-red-500 hover:text-red-700 transition-colors"
+                >
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              // Options pour les utilisateurs non connectés (mobile)
+              <>
+                <Link
+                  href="/register"
+                  className="block px-6 py-2 text-[#00ffec] hover:text-foreground transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Inscription
+                </Link>
+                <Link
+                  href="/login"
+                  className="block px-6 py-2 text-[#00ffec] hover:text-foreground transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Connexion
+                </Link>
+              </>
+            )}
             <div className="pt-4 px-6 space-y-3 border-t border-border/50">
               <Link
-                href="/login"
+                href="/services"
                 className="block text-[#00ffec] hover:text-foreground transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Connexion
+                Services
               </Link>
               <Link
-                href="/register"
-                className="block bg-[#00ffec] text-background px-4 py-2 rounded-lg hover:bg-blue-500 transition-colors text-center"
+                href="/contact"
+                className="block text-[#00ffec] hover:text-foreground transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Inscription
+                Contact
               </Link>
             </div>
           </div>
