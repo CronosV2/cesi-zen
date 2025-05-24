@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
+import { TabNavigation, LoadingSpinner, FormInput, AlertMessage } from '../../components';
 
 // Définition des types
 interface UserProfile {
@@ -221,77 +222,56 @@ export default function ProfilePage() {
     }
   };
 
+  // Configuration des onglets
+  const tabs = [
+    {
+      id: ProfileTab.INFO,
+      label: 'Informations',
+      onClick: () => handleTabChange(ProfileTab.INFO),
+      isActive: activeTab === ProfileTab.INFO
+    },
+    {
+      id: ProfileTab.EDIT,
+      label: 'Modifier le profil',
+      onClick: () => handleTabChange(ProfileTab.EDIT),
+      isActive: activeTab === ProfileTab.EDIT
+    },
+    {
+      id: ProfileTab.PASSWORD,
+      label: 'Changer le mot de passe',
+      onClick: () => handleTabChange(ProfileTab.PASSWORD),
+      isActive: activeTab === ProfileTab.PASSWORD
+    }
+  ];
+
+  // Ajouter l'onglet Administration pour les admins
+  if (profile?.role === 'admin') {
+    tabs.push({
+      id: 'admin' as any, // Type plus permissif pour les onglets spéciaux
+      label: 'Administration',
+      onClick: () => router.push('/admin'),
+      isActive: false
+    });
+  }
+
   // Afficher un message de chargement pour l'authentification
   if (isLoading) {
-    return (
-      <div className="container mx-auto p-6 max-w-4xl pt-20">
-        <h1 className="text-3xl font-bold mb-6">Profil</h1>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <span className="ml-3">Vérification de l'authentification...</span>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen text="Vérification de l'authentification..." />;
   }
 
   // Afficher un message de chargement
   if (loading && !profile) {
-    return (
-      <div className="container mx-auto p-6 max-w-4xl pt-20">
-        <h1 className="text-3xl font-bold mb-6">Profil</h1>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen text="Chargement du profil..." />;
   }
 
   return (
     <div className="container mx-auto p-6 max-w-4xl pt-20">
       <h1 className="text-3xl font-bold mb-6">Mon Profil</h1>
 
-      {/* Navigation des onglets */}
-      <div className="flex space-x-2 mb-6 border-b">
-        <button
-          onClick={() => handleTabChange(ProfileTab.INFO)}
-          className={`py-2 px-4 ${activeTab === ProfileTab.INFO ? 'border-b-2 border-primary text-primary font-medium' : 'text-foreground/70'}`}
-        >
-          Informations
-        </button>
-        <button
-          onClick={() => handleTabChange(ProfileTab.EDIT)}
-          className={`py-2 px-4 ${activeTab === ProfileTab.EDIT ? 'border-b-2 border-primary text-primary font-medium' : 'text-foreground/70'}`}
-        >
-          Modifier le profil
-        </button>
-        <button
-          onClick={() => handleTabChange(ProfileTab.PASSWORD)}
-          className={`py-2 px-4 ${activeTab === ProfileTab.PASSWORD ? 'border-b-2 border-primary text-primary font-medium' : 'text-foreground/70'}`}
-        >
-          Changer le mot de passe
-        </button>
-        {profile?.role === 'admin' && (
-          <button
-            onClick={() => router.push('/admin')}
-            className="py-2 px-4 text-foreground/70 hover:text-primary"
-          >
-            Administration
-          </button>
-        )}
-      </div>
+      <TabNavigation tabs={tabs} />
 
-      {/* Messages d'erreur et de succès */}
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-          {error}
-        </div>
-      )}
-      
-      {success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
-          {success}
-        </div>
-      )}
+      {error && <AlertMessage type="error" message={error} />}
+      {success && <AlertMessage type="success" message={success} />}
 
       {/* Affichage des informations du profil */}
       {activeTab === ProfileTab.INFO && profile && (
@@ -313,50 +293,40 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <h3 className="text-lg font-medium border-b pb-2">Informations personnelles</h3>
               
-              <div>
-                <p className="text-sm text-foreground/70">Date de naissance</p>
-                <p>{profile.dateOfBirth || 'Non renseigné'}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-foreground/70">École</p>
-                <p>{profile.ecole || 'Non renseigné'}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-foreground/70">Promotion</p>
-                <p>{profile.promotion || 'Non renseigné'}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-foreground/70">Ville</p>
-                <p>{profile.ville || 'Non renseigné'}</p>
-              </div>
+              {[
+                { label: 'Date de naissance', value: profile.dateOfBirth },
+                { label: 'École', value: profile.ecole },
+                { label: 'Promotion', value: profile.promotion },
+                { label: 'Ville', value: profile.ville }
+              ].map((item, index) => (
+                <div key={index}>
+                  <p className="text-sm text-foreground/70">{item.label}</p>
+                  <p>{item.value || 'Non renseigné'}</p>
+                </div>
+              ))}
             </div>
             
             <div className="space-y-4">
               <h3 className="text-lg font-medium border-b pb-2">Statistiques</h3>
               
-              <div>
-                <p className="text-sm text-foreground/70">Niveau</p>
-                <p className="text-lg font-semibold">{profile.level || 1}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-foreground/70">Exercices réalisés</p>
-                <p className="text-lg font-semibold">{profile.exercicesCompleted || 0}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-foreground/70">Niveau de stress</p>
-                <p className={`text-lg font-semibold ${
-                  profile.stressLevel === 'Élevé' ? 'text-red-500' : 
-                  profile.stressLevel === 'Moyen' ? 'text-yellow-500' : 
-                  'text-green-500'
-                }`}>
-                  {profile.stressLevel || 'Normal'}
-                </p>
-              </div>
+              {[
+                { label: 'Niveau', value: profile.level || 1, className: 'text-lg font-semibold' },
+                { label: 'Exercices réalisés', value: profile.exercicesCompleted || 0, className: 'text-lg font-semibold' },
+                { 
+                  label: 'Niveau de stress', 
+                  value: profile.stressLevel || 'Normal', 
+                  className: `text-lg font-semibold ${
+                    profile.stressLevel === 'Élevé' ? 'text-red-500' : 
+                    profile.stressLevel === 'Moyen' ? 'text-yellow-500' : 
+                    'text-green-500'
+                  }`
+                }
+              ].map((item, index) => (
+                <div key={index}>
+                  <p className="text-sm text-foreground/70">{item.label}</p>
+                  <p className={item.className}>{item.value}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -369,94 +339,59 @@ export default function ProfilePage() {
           
           <form onSubmit={handleProfileUpdate} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="firstName" className="block text-sm font-medium">
-                  Prénom *
-                </label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="lastName" className="block text-sm font-medium">
-                  Nom *
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="dateOfBirth" className="block text-sm font-medium">
-                Date de naissance
-              </label>
-              <input
-                type="date"
-                id="dateOfBirth"
-                name="dateOfBirth"
-                value={formData.dateOfBirth}
+              <FormInput
+                label="Prénom"
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded-md"
+                required
+              />
+              
+              <FormInput
+                label="Nom"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                required
               />
             </div>
+            
+            <FormInput
+              label="Date de naissance"
+              type="date"
+              id="dateOfBirth"
+              name="dateOfBirth"
+              value={formData.dateOfBirth}
+              onChange={handleInputChange}
+            />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="ecole" className="block text-sm font-medium">
-                  École
-                </label>
-                <input
-                  type="text"
-                  id="ecole"
-                  name="ecole"
-                  value={formData.ecole}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="promotion" className="block text-sm font-medium">
-                  Promotion
-                </label>
-                <input
-                  type="text"
-                  id="promotion"
-                  name="promotion"
-                  value={formData.promotion}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="ville" className="block text-sm font-medium">
-                Ville
-              </label>
-              <input
-                type="text"
-                id="ville"
-                name="ville"
-                value={formData.ville}
+              <FormInput
+                label="École"
+                id="ecole"
+                name="ecole"
+                value={formData.ecole}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded-md"
+              />
+              
+              <FormInput
+                label="Promotion"
+                id="promotion"
+                name="promotion"
+                value={formData.promotion}
+                onChange={handleInputChange}
               />
             </div>
+            
+            <FormInput
+              label="Ville"
+              id="ville"
+              name="ville"
+              value={formData.ville}
+              onChange={handleInputChange}
+            />
             
             <div className="flex justify-end">
               <button
@@ -465,10 +400,7 @@ export default function ProfilePage() {
                 className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 flex items-center"
               >
                 {loading ? (
-                  <>
-                    <span className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-white rounded-full"></span>
-                    Enregistrement...
-                  </>
+                  <LoadingSpinner size="sm" text="Enregistrement..." />
                 ) : (
                   'Enregistrer les modifications'
                 )}
@@ -484,53 +416,36 @@ export default function ProfilePage() {
           <h2 className="text-xl font-semibold mb-4">Changer mon mot de passe</h2>
           
           <form onSubmit={handlePasswordUpdate} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="currentPassword" className="block text-sm font-medium">
-                Mot de passe actuel *
-              </label>
-              <input
-                type="password"
-                id="currentPassword"
-                name="currentPassword"
-                value={passwordData.currentPassword}
-                onChange={handlePasswordChange}
-                required
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
+            <FormInput
+              label="Mot de passe actuel"
+              type="password"
+              id="currentPassword"
+              name="currentPassword"
+              value={passwordData.currentPassword}
+              onChange={handlePasswordChange}
+              required
+            />
             
-            <div className="space-y-2">
-              <label htmlFor="newPassword" className="block text-sm font-medium">
-                Nouveau mot de passe *
-              </label>
-              <input
-                type="password"
-                id="newPassword"
-                name="newPassword"
-                value={passwordData.newPassword}
-                onChange={handlePasswordChange}
-                required
-                className="w-full p-2 border rounded-md"
-              />
-              <p className="text-xs text-foreground/70">
-                Le mot de passe doit contenir au moins 6 caractères
-              </p>
-            </div>
+            <FormInput
+              label="Nouveau mot de passe"
+              type="password"
+              id="newPassword"
+              name="newPassword"
+              value={passwordData.newPassword}
+              onChange={handlePasswordChange}
+              required
+              helpText="Le mot de passe doit contenir au moins 6 caractères"
+            />
             
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium">
-                Confirmer le nouveau mot de passe *
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={passwordData.confirmPassword}
-                onChange={handlePasswordChange}
-                required
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
+            <FormInput
+              label="Confirmer le nouveau mot de passe"
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={passwordData.confirmPassword}
+              onChange={handlePasswordChange}
+              required
+            />
             
             <div className="flex justify-end">
               <button
@@ -539,10 +454,7 @@ export default function ProfilePage() {
                 className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 flex items-center"
               >
                 {loading ? (
-                  <>
-                    <span className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-white rounded-full"></span>
-                    Modification...
-                  </>
+                  <LoadingSpinner size="sm" text="Modification..." />
                 ) : (
                   'Changer le mot de passe'
                 )}
