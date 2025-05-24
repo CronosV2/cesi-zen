@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import profileRoutes from './routes/profileRoutes';
+import adminRoutes from './routes/adminRoutes';
 
 // Configuration dotenv
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -46,6 +47,7 @@ const connectDB = async (): Promise<void> => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Gestion des erreurs globale
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
