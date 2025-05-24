@@ -10,6 +10,13 @@ type User = {
   firstName: string;
   lastName: string;
   role: 'student' | 'admin';
+  level?: number;
+  exercicesCompleted?: number;
+  stressLevel?: string;
+  ecole?: string;
+  promotion?: string;
+  ville?: string;
+  dateOfBirth?: string;
 };
 
 // Définition des propriétés du contexte d'authentification
@@ -78,12 +85,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await api.post('/auth/login', { email, password });
       
       if (response.data.success) {
-        await checkAuth(); // Mettre à jour l'état d'authentification
+        // Mettre à jour directement l'état avec les données reçues
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+        console.log('Utilisateur connecté:', response.data.user);
         return true;
       }
       return false;
     } catch (error) {
       console.error('Erreur de connexion:', error);
+      setUser(null);
+      setIsAuthenticated(false);
       return false;
     }
   };
