@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
+import { TabNavigation, AlertMessage, LoadingSpinner } from '../../../components';
 
 // Types
 interface User {
@@ -46,52 +47,37 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<'users' | 'stats'>('users');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
 
-  // Vérifier si l'utilisateur est connecté et admin
+  // Vérifier l'authentification et le rôle admin
   useEffect(() => {
-    // Ne pas rediriger si on est encore en train de charger l'authentification
     if (isLoading) return;
     
     if (!isAuthenticated) {
       router.push('/login');
-    } else {
-      checkAdminRole();
+      return;
     }
-  }, [isAuthenticated, isLoading, router]);
 
-  const checkAdminRole = async () => {
-    try {
-      const response = await axios.get('http://localhost:5001/api/profile/full', {
-        withCredentials: true
-      });
-      
-      if (response.data.success && response.data.user?.role !== 'admin') {
-        router.push('/profil');
-      }
-    } catch (error) {
-      console.error('Erreur lors de la vérification du rôle:', error);
+    // Utiliser directement les données du contexte au lieu d'un appel API supplémentaire
+    if (user?.role !== 'admin') {
       router.push('/profil');
+      return;
     }
-  };
+  }, [isAuthenticated, isLoading, user, router]);
 
-  // Charger les données
-  useEffect(() => {
-    if (activeTab === 'users') {
-      fetchUsers();
-    } else if (activeTab === 'stats') {
-      fetchStats();
-    }
-  }, [activeTab, currentPage, searchTerm, roleFilter]);
-
-  const fetchUsers = async () => {
+  // Fonctions de fetch optimisées avec useCallback pour éviter les re-créations
+  const fetchUsers = useCallback(async () => {
+    if (!isAuthenticated || user?.role !== 'admin') return;
+    
     try {
       setLoading(true);
+      setError('');
+      
       const response = await axios.get('http://localhost:5001/api/admin/users', {
         params: {
           page: currentPage,
@@ -112,11 +98,15 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, user?.role, currentPage, searchTerm, roleFilter]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
+    if (!isAuthenticated || user?.role !== 'admin') return;
+    
     try {
       setLoading(true);
+      setError('');
+      
       const response = await axios.get('http://localhost:5001/api/admin/users/stats', {
         withCredentials: true
       });
@@ -130,61 +120,52 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, user?.role]);
+
+  // Charger les données seulement quand nécessaire
+  useEffect(() => {
+    // Ne charger que si l'utilisateur est authentifié et admin
+    if (!isAuthenticated || user?.role !== 'admin') return;
+
+    if (activeTab === 'users') {
+      fetchUsers();
+    } else if (activeTab === 'stats') {
+      fetchStats();
+    }
+  }, [activeTab, fetchUsers, fetchStats, isAuthenticated, user?.role]);
+
+  // Configuration des onglets
+  const tabs = [
+    {
+      id: 'users',
+      label: 'Gestion des utilisateurs',
+      onClick: () => setActiveTab('users'),
+      isActive: activeTab === 'users'
+    },
+    {
+      id: 'stats',
+      label: 'Statistiques',
+      onClick: () => setActiveTab('stats'),
+      isActive: activeTab === 'stats'
+    }
+  ];
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto p-6 max-w-7xl pt-20">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <span className="ml-3">Vérification de l'authentification...</span>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen text="Vérification de l'authentification..." />;
   }
 
   if (loading && !users.length && !stats) {
-    return (
-      <div className="container mx-auto p-6 max-w-7xl pt-20">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen text="Chargement des données..." />;
   }
 
   return (
     <div className="container mx-auto p-6 max-w-7xl pt-20">
       <h1 className="text-3xl font-bold mb-6">Administration des utilisateurs</h1>
 
-      {/* Navigation des onglets */}
-      <div className="flex space-x-2 mb-6 border-b">
-        <button
-          onClick={() => setActiveTab('users')}
-          className={`py-2 px-4 ${activeTab === 'users' ? 'border-b-2 border-primary text-primary font-medium' : 'text-foreground/70'}`}
-        >
-          Gestion des utilisateurs
-        </button>
-        <button
-          onClick={() => setActiveTab('stats')}
-          className={`py-2 px-4 ${activeTab === 'stats' ? 'border-b-2 border-primary text-primary font-medium' : 'text-foreground/70'}`}
-        >
-          Statistiques
-        </button>
-      </div>
+      <TabNavigation tabs={tabs} />
 
-      {/* Messages d'erreur et de succès */}
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-          {error}
-        </div>
-      )}
-      
-      {success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
-          {success}
-        </div>
-      )}
+      {error && <AlertMessage type="error" message={error} />}
+      {success && <AlertMessage type="success" message={success} />}
 
       {/* Onglet Gestion des utilisateurs */}
       {activeTab === 'users' && (
