@@ -56,15 +56,18 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<ProfileTab>(ProfileTab.INFO);
 
   // Utilisation du contexte d'authentification et du router
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   // Vérifier si l'utilisateur est connecté
   useEffect(() => {
+    // Ne pas rediriger si on est encore en train de charger l'authentification
+    if (isLoading) return;
+    
     if (!isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   // Charger les données de profil
   useEffect(() => {
@@ -218,10 +221,23 @@ export default function ProfilePage() {
     }
   };
 
+  // Afficher un message de chargement pour l'authentification
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6 max-w-4xl pt-20">
+        <h1 className="text-3xl font-bold mb-6">Profil</h1>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <span className="ml-3">Vérification de l'authentification...</span>
+        </div>
+      </div>
+    );
+  }
+
   // Afficher un message de chargement
   if (loading && !profile) {
     return (
-      <div className="container mx-auto p-6 max-w-4xl">
+      <div className="container mx-auto p-6 max-w-4xl pt-20">
         <h1 className="text-3xl font-bold mb-6">Profil</h1>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -231,7 +247,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto p-6 max-w-4xl pt-20">
       <h1 className="text-3xl font-bold mb-6">Mon Profil</h1>
 
       {/* Navigation des onglets */}
@@ -254,6 +270,14 @@ export default function ProfilePage() {
         >
           Changer le mot de passe
         </button>
+        {profile?.role === 'admin' && (
+          <button
+            onClick={() => router.push('/admin')}
+            className="py-2 px-4 text-foreground/70 hover:text-primary"
+          >
+            Administration
+          </button>
+        )}
       </div>
 
       {/* Messages d'erreur et de succès */}
