@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
+import User from '../models/User';
 
 // Étendre l'interface Request pour inclure userId
 declare module 'express' {
@@ -41,5 +42,32 @@ export const protect = async (req: Request, res: Response, next: NextFunction): 
     next();
   } catch (error) {
     res.status(401).json({ message: 'Erreur d\'authentification' });
+  }
+};
+
+// Middleware pour vérifier que l'utilisateur est administrateur
+export const adminOnly = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.userId) {
+      res.status(401).json({ message: 'Non authentifié' });
+      return;
+    }
+
+    const user = await User.findById(req.userId);
+    
+    if (!user) {
+      res.status(401).json({ message: 'Utilisateur non trouvé' });
+      return;
+    }
+
+    if (user.role !== 'admin') {
+      res.status(403).json({ message: 'Accès refusé : droits administrateur requis' });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    console.error('Erreur dans le middleware adminOnly:', error);
+    res.status(500).json({ message: 'Erreur de vérification des droits' });
   }
 };
