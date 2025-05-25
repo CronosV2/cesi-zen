@@ -54,7 +54,7 @@ export default function Login() {
   return (
     <div className="min-h-screen pt-24 px-4">
       <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold text-center mb-6 text-cyan-300">
+        <h1 className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-cyan-300 to-blue-500 inline-block text-transparent bg-clip-text">
           Connexion
         </h1>
         
@@ -87,7 +87,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full ${isLoading ? 'bg-gray-400' : 'bg-cyan-300 hover:bg-blue-600'} text-white py-2 px-4 rounded-md transition duration-200`}
+            className={`w-full ${isLoading ? 'bg-gray-400' : 'bg-gradient-to-r from-cyan-300 to-blue-500 hover:from-cyan-400 hover:to-blue-600'} text-white py-2 px-4 rounded-md transition-all duration-200`}
           >
             {isLoading ? 'Connexion en cours...' : 'Se connecter'}
           </button>
