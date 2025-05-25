@@ -160,7 +160,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl pt-20">
-      <h1 className="text-3xl font-bold mb-6">Administration des utilisateurs</h1>
+      <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-cyan-300 to-blue-500 inline-block text-transparent bg-clip-text">Administration des utilisateurs</h1>
 
       <TabNavigation tabs={tabs} />
 
@@ -201,7 +201,7 @@ export default function AdminUsersPage() {
               
               <button
                 onClick={() => alert('Fonctionnalité de création à implémenter')}
-                className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90"
+                className="bg-gradient-to-r from-cyan-300 to-blue-500 hover:from-cyan-400 hover:to-blue-600 text-white px-4 py-2 rounded-md transition-all"
               >
                 Créer un utilisateur
               </button>
