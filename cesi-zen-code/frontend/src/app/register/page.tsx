@@ -132,7 +132,7 @@ export default function Register() {
       <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
         {/* Titre avec indicateur d'étape */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-cyan-300">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-blue-500 inline-block text-transparent bg-clip-text">
             {currentStep === FormStep.ACCOUNT_INFO && 'Créer un compte'}
             {currentStep === FormStep.PERSONAL_INFO && 'Informations personnelles'}
             {currentStep === FormStep.CONFIRMATION && 'Inscription réussie'}
@@ -140,9 +140,9 @@ export default function Register() {
           
           {/* Indicateur de progression */}
           <div className="flex space-x-1">
-            <div className={`w-3 h-3 rounded-full ${currentStep >= FormStep.ACCOUNT_INFO ? 'bg-cyan-300' : 'bg-gray-300'}`}></div>
-            <div className={`w-3 h-3 rounded-full ${currentStep >= FormStep.PERSONAL_INFO ? 'bg-cyan-300' : 'bg-gray-300'}`}></div>
-            <div className={`w-3 h-3 rounded-full ${currentStep >= FormStep.CONFIRMATION ? 'bg-cyan-300' : 'bg-gray-300'}`}></div>
+            <div className={`w-3 h-3 rounded-full ${currentStep >= FormStep.ACCOUNT_INFO ? 'bg-gradient-to-r from-cyan-300 to-blue-500' : 'bg-gray-300'}`}></div>
+            <div className={`w-3 h-3 rounded-full ${currentStep >= FormStep.PERSONAL_INFO ? 'bg-gradient-to-r from-cyan-300 to-blue-500' : 'bg-gray-300'}`}></div>
+            <div className={`w-3 h-3 rounded-full ${currentStep >= FormStep.CONFIRMATION ? 'bg-gradient-to-r from-cyan-300 to-blue-500' : 'bg-gray-300'}`}></div>
           </div>
         </div>
         
@@ -246,7 +246,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-cyan-300 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition duration-200"
+              className="w-full bg-gradient-to-r from-cyan-300 to-blue-500 hover:from-cyan-400 hover:to-blue-600 text-white py-2 px-4 rounded-md transition-all duration-200"
             >
               Continuer
             </button>
@@ -338,7 +338,7 @@ export default function Register() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-2/3 bg-cyan-300 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition duration-200"
+                className="w-2/3 bg-gradient-to-r from-cyan-300 to-blue-500 hover:from-cyan-400 hover:to-blue-600 text-white py-2 px-4 rounded-md transition-all duration-200"
               >
                 {isLoading ? 'Inscription en cours...' : 'Terminer l\'inscription'}
               </button>
