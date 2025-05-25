@@ -176,7 +176,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="container mx-auto p-6 max-w-7xl pt-20">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Tableau de bord administrateur</h1>
+        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-cyan-300 to-blue-500 inline-block text-transparent bg-clip-text">Tableau de bord administrateur</h1>
         <p className="text-foreground/70">
           Bienvenue {user?.firstName} ! Gérez votre plateforme depuis ce tableau de bord.
         </p>
@@ -214,7 +214,7 @@ export default function AdminDashboardPage() {
           </div>
           <button
             onClick={() => router.push('/admin/users')}
-            className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 transition-colors"
+            className="w-full bg-gradient-to-r from-cyan-300 to-blue-500 hover:from-cyan-400 hover:to-blue-600 text-white py-2 px-4 rounded-md transition-all"
           >
             Accéder à la gestion
           </button>
@@ -249,15 +249,15 @@ export default function AdminDashboardPage() {
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-400">Paramètres système</h3>
-              <p className="text-sm text-gray-400">Configuration et paramètres avancés</p>
+              <h3 className="text-lg font-semibold text-gray-400">Gestion du Questionnaire Holmes-Rahe</h3>
+              <p className="text-sm text-gray-400">Gérer les questions et les réponses du questionnaire</p>
             </div>
           </div>
           <button
             disabled
             className="w-full bg-gray-300 text-gray-500 py-2 px-4 rounded-md cursor-not-allowed"
           >
-            Bientôt disponible
+            Acc
           </button>
         </div>
       </div>
@@ -268,13 +268,13 @@ export default function AdminDashboardPage() {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => router.push('/admin/users')}
-            className="bg-blue-100 text-blue-700 px-4 py-2 rounded-md hover:bg-blue-200 transition-colors"
+            className="bg-gradient-to-r from-cyan-200 to-blue-400 text-white px-4 py-2 rounded-md hover:from-cyan-300 hover:to-blue-500 transition-all"
           >
             📊 Voir tous les utilisateurs
           </button>
           <button
             onClick={() => router.push('/admin/users?tab=stats')}
-            className="bg-green-100 text-green-700 px-4 py-2 rounded-md hover:bg-green-200 transition-colors"
+            className="bg-gradient-to-r from-cyan-200 to-blue-400 text-white px-4 py-2 rounded-md hover:from-cyan-300 hover:to-blue-500 transition-all"
           >
             📈 Statistiques détaillées
           </button>
