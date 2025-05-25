@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 import { TabNavigation, LoadingSpinner, FormInput, AlertMessage } from '../../components';
+import { refreshProfileDelayed } from '../../utils/profileUtils';
 
 // Définition des types
 interface UserProfile {
@@ -139,8 +140,11 @@ export default function ProfilePage() {
       );
 
       if (response.data.success) {
+        setSuccess('Profil mis à jour avec succès !');
         setProfile(response.data.user);
-        setSuccess('Profil mis à jour avec succès');
+        
+        // Déclencher le rafraîchissement du profil dans le BentoGrid
+        refreshProfileDelayed(300);
       }
     } catch (err: any) {
       console.error('Erreur lors de la mise à jour du profil:', err);
