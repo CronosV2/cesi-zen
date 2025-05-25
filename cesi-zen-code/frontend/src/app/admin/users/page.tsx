@@ -47,10 +47,15 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<'users' | 'stats'>('users');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
+  // États pour la suppression
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState<{id: string, name: string} | null>(null);
+
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
 
@@ -133,6 +138,47 @@ export default function AdminUsersPage() {
       fetchStats();
     }
   }, [activeTab, fetchUsers, fetchStats, isAuthenticated, user?.role]);
+
+  // Fonction pour supprimer un utilisateur
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      setDeleteLoading(userId);
+      setError('');
+      setSuccess('');
+
+      const response = await axios.delete(`http://localhost:5001/api/admin/users/${userId}`, {
+        withCredentials: true
+      });
+
+      if (response.data.success) {
+        setSuccess('Utilisateur supprimé avec succès');
+        setShowDeleteConfirm(null);
+        // Recharger la liste des utilisateurs
+        fetchUsers();
+        // Recharger les statistiques si on est sur l'onglet stats
+        if (activeTab === 'stats') {
+          fetchStats();
+        }
+      }
+    } catch (err: any) {
+      console.error('Erreur lors de la suppression:', err);
+      setError(err.response?.data?.message || 'Erreur lors de la suppression de l\'utilisateur');
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
+
+  // Fonction pour confirmer la suppression
+  const confirmDelete = (userId: string, userName: string) => {
+    setShowDeleteConfirm(userId);
+    setUserToDelete({id: userId, name: userName});
+  };
+
+  // Fonction pour annuler la suppression
+  const cancelDelete = () => {
+    setShowDeleteConfirm(null);
+    setUserToDelete(null);
+  };
 
   // Configuration des onglets
   const tabs = [
@@ -232,49 +278,82 @@ export default function AdminUsersPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Date de création
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user) => (
-                    <tr key={user._id} className="hover:bg-gray-50">
+                  {users.map((currentUser) => (
+                    <tr key={currentUser._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {user.firstName} {user.lastName}
+                            {currentUser.firstName} {currentUser.lastName}
                           </div>
-                          {user.promotion && (
+                          {currentUser.promotion && (
                             <div className="text-sm text-gray-500">
-                              Promotion {user.promotion}
+                              Promotion {currentUser.promotion}
                             </div>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {user.email}
+                        {currentUser.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.role === 'admin' 
+                          currentUser.role === 'admin' 
                             ? 'bg-purple-100 text-purple-800' 
                             : 'bg-blue-100 text-blue-800'
                         }`}>
-                          {user.role === 'admin' ? 'Administrateur' : 'Étudiant'}
+                          {currentUser.role === 'admin' ? 'Administrateur' : 'Étudiant'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.isActive 
+                          currentUser.isActive 
                             ? 'bg-green-100 text-green-800' 
                             : 'bg-red-100 text-red-800'
                         }`}>
-                          {user.isActive ? 'Actif' : 'Inactif'}
+                          {currentUser.isActive ? 'Actif' : 'Inactif'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {user.ecole || '-'}
+                        {currentUser.ecole || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {new Date(currentUser.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        {currentUser._id !== user?.id ? (
+                          <button
+                            onClick={() => confirmDelete(currentUser._id, `${currentUser.firstName} ${currentUser.lastName}`)}
+                            className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm"
+                            disabled={deleteLoading === currentUser._id}
+                          >
+                            {deleteLoading === currentUser._id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                                <span>Suppression...</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                <span>Supprimer</span>
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg">
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <span>Votre compte</span>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -397,6 +476,50 @@ export default function AdminUsersPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+      
+      {/* Modal de confirmation de suppression */}
+      {showDeleteConfirm && userToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Confirmer la suppression
+            </h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{userToDelete.name}</strong> ? Cette action est irréversible et supprimera définitivement toutes les données associées à cet utilisateur.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelDelete}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Annuler
+              </button>
+              <button
+                onClick={() => handleDeleteUser(showDeleteConfirm)}
+                disabled={deleteLoading === showDeleteConfirm}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm"
+              >
+                {deleteLoading === showDeleteConfirm ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                    <span>Suppression...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Supprimer définitivement</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
