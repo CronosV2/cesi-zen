@@ -25,43 +25,72 @@ export default function BentoGrid() {
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated } = useAuth(); // Utilisation du contexte d'authentification
 
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Utiliser l'endpoint approprié selon l'état d'authentification
-        const endpoint = isAuthenticated 
-          ? 'http://localhost:5001/api/profile/data'  // Données réelles pour utilisateurs connectés
-          : 'http://localhost:5001/api/profile/test'; // Données de test pour visiteurs
-        
-        const response = await axios.get(endpoint, { 
-          withCredentials: true // Nécessaire pour envoyer les cookies
-        });
-        
-        if (response.data) {
-          console.log('Données de profil chargées:', response.data);
-          setProfileData(response.data);
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement du profil:', error);
-        // Charger des données par défaut en cas d'erreur
-        setProfileData({
-          name: "Visiteur",
-          status: "Non connecté",
-          level: 1,
-          exercicesCompleted: 0,
-          stressLevel: "Normal"
-        });
-      } finally {
-        setIsLoading(false);
+  const fetchProfileData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Utiliser l'endpoint approprié selon l'état d'authentification
+      const endpoint = isAuthenticated 
+        ? 'http://localhost:5001/api/profile/data'  // Données réelles pour utilisateurs connectés
+        : 'http://localhost:5001/api/profile/test'; // Données de test pour visiteurs
+      
+      const response = await axios.get(endpoint, { 
+        withCredentials: true // Nécessaire pour envoyer les cookies
+      });
+      
+      if (response.data) {
+        console.log('Données de profil chargées:', response.data);
+        setProfileData(response.data);
       }
-    };
-    
+    } catch (error) {
+      console.error('Erreur lors du chargement du profil:', error);
+      // Charger des données par défaut en cas d'erreur
+      setProfileData({
+        name: "Visiteur",
+        status: "Non connecté",
+        level: 1,
+        exercicesCompleted: 0,
+        stressLevel: "Normal"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProfileData();
   }, [isAuthenticated]); // Recharger quand l'état d'authentification change
 
+  // Écouter les événements de rafraîchissement du profil
+  useEffect(() => {
+    const handleProfileRefresh = () => {
+      if (isAuthenticated) {
+        fetchProfileData();
+      }
+    };
+
+    // Ajouter l'event listener
+    window.addEventListener('refreshProfile', handleProfileRefresh);
+
+    // Nettoyer l'event listener
+    return () => {
+      window.removeEventListener('refreshProfile', handleProfileRefresh);
+    };
+  }, [isAuthenticated]);
+
   const tools = [
+    {
+      title: 'Test Holmes-Rahe',
+      description: 'Évaluez votre niveau de stress',
+      href: '/outils/holmes-rahe',
+      icon: (
+        <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+          <path d="M12 6.5c1.38 0 2.5-1.12 2.5-2.5S13.38 1.5 12 1.5 9.5 2.62 9.5 4 10.62 6.5 12 6.5z"/>
+        </svg>
+      ),
+      className: 'md:col-span-1',
+    },
     {
       title: 'Méditation',
       description: 'Découvrez nos séances de méditation guidée',
@@ -69,18 +98,6 @@ export default function BentoGrid() {
       icon: (
         <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z" />
-        </svg>
-      ),
-      className: 'md:col-span-1',
-    },
-    {
-      title: 'Journal',
-      description: 'Suivez votre progression personnelle',
-      href: '/outils/journal',
-      icon: (
-        <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z" />
-          <path d="M7 7h10v2H7zm0 4h10v2H7zm0 4h7v2H7z" />
         </svg>
       ),
       className: 'md:col-span-1',
@@ -168,12 +185,12 @@ export default function BentoGrid() {
           >
             <div className="relative z-10">
               <div className="text-primary mb-4">{tool.icon}</div>
-              <h3 className="text-xl font-semibold mb-2 text-primary group-hover:text-blue-500 transition-colors">
+              <h3 className="text-xl font-semibold mb-2 bg-gradient-to-r from-cyan-300 to-blue-500 inline-block text-transparent bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-200 group-hover:to-blue-400 transition-all">
                 {tool.title}
               </h3>
               <p className="text-foreground">{tool.description}</p>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/0 group-hover:from-primary/10 group-hover:to-primary/10 transition-all duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-300/0 to-blue-500/0 group-hover:from-cyan-300/10 group-hover:to-blue-500/10 transition-all duration-300" />
           </Link>
         ))}
       </div>
