@@ -12,6 +12,7 @@ import userRoutes from './routes/userRoutes';
 import profileRoutes from './routes/profileRoutes';
 import adminRoutes from './routes/adminRoutes';
 import holmesRaheRoutes from './routes/holmesRaheRoutes';
+import articleRoutes from './routes/articleRoutes';
 
 // Configuration dotenv
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -50,6 +51,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/holmes-rahe', holmesRaheRoutes);
+app.use('/api/articles', articleRoutes);
 
 // Gestion des erreurs globale
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
@@ -75,3 +77,6 @@ const startServer = async (): Promise<void> => {
 };
 
 startServer();
+
+// Export pour les tests
+export default app;
