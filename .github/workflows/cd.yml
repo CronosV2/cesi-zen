@@ -59,6 +59,17 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: 🏷️ Generate image tags
+        id: tags
+        run: |
+          # Convertir en minuscules pour ghcr.io
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_BASE="ghcr.io/${REPO_OWNER}/cesi-zen"
+          
+          echo "image_base=${IMAGE_BASE}" >> $GITHUB_OUTPUT
+          echo "tag_version=${IMAGE_BASE}-${{ matrix.service }}:${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "tag_latest=${IMAGE_BASE}-${{ matrix.service }}:latest" >> $GITHUB_OUTPUT
+
       - name: 🏗️ Build and Push
         uses: docker/build-push-action@v5
         with:
@@ -66,8 +77,8 @@ jobs:
           file: ./cesi-zen-code/${{ matrix.service == 'backend' && 'backend-ts' || 'frontend' }}/Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}-${{ matrix.service }}:${{ steps.version.outputs.version }}
-            ${{ env.IMAGE_NAME }}-${{ matrix.service }}:latest
+            ${{ steps.tags.outputs.tag_version }}
+            ${{ steps.tags.outputs.tag_latest }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -91,14 +102,24 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: 🏷️ Generate deployment tags
+        id: deploy-tags
+        run: |
+          # Convertir en minuscules pour ghcr.io
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_BASE="ghcr.io/${REPO_OWNER}/cesi-zen"
+          
+          echo "image_backend=${IMAGE_BASE}-backend:${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "image_frontend=${IMAGE_BASE}-frontend:${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+
       - name: 🚀 Deploy with Docker Compose
         run: |
           echo "🚀 Déploiement de la version ${{ steps.version.outputs.version }}"
           
           # Variables d'environnement pour le déploiement
           export DOCKER_TAG=${{ steps.version.outputs.version }}
-          export IMAGE_BACKEND=${{ env.IMAGE_NAME }}-backend:${{ steps.version.outputs.version }}
-          export IMAGE_FRONTEND=${{ env.IMAGE_NAME }}-frontend:${{ steps.version.outputs.version }}
+          export IMAGE_BACKEND=${{ steps.deploy-tags.outputs.image_backend }}
+          export IMAGE_FRONTEND=${{ steps.deploy-tags.outputs.image_frontend }}
           
           echo "Images à déployer :"
           echo "  Backend: $IMAGE_BACKEND"
@@ -136,4 +157,5 @@ jobs:
         run: |
           echo "🎉 Déploiement réussi !"
           echo "Version: ${{ steps.version.outputs.version }}"
-          echo "Images disponibles sur: ${{ env.REGISTRY }}/${{ github.repository_owner }}/cesi-zen"
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "Images disponibles sur: ${{ env.REGISTRY }}/${REPO_OWNER}/cesi-zen"
