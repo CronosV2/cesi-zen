@@ -100,6 +100,22 @@ on:
 - **`main`** → Déploiement automatique STAGING  
 - **`tag v*`** → Déploiement automatique PROD
 
+### 🤖 Versioning automatique
+```bash
+# Option 1: Par convention de commit (automatique)
+git commit -m "feat: nouvelle fonctionnalité"  # → v1.1.0
+git commit -m "fix: correction bug"             # → v1.0.1
+git commit -m "feat!: breaking change"         # → v2.0.0
+
+# Option 2: Script manuel
+./scripts/auto-version.sh patch               # → v1.0.1
+./scripts/auto-version.sh minor               # → v1.1.0
+./scripts/auto-version.sh major               # → v2.0.0
+
+# Option 3: GitHub Actions interface
+# Repository → Actions → "Auto Versioning" → Run workflow
+```
+
 ## 🔧 Comment tester
 
 1. **Tester la CI :**

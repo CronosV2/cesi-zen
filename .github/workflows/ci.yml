@@ -3,6 +3,7 @@ name: 🔄 CI Pipeline
 on:
   push:
     branches: [ main, develop ]
+    tags: [ 'v*' ]                    # 🏷️ CI sur les tags auto-générés
   pull_request:
     branches: [ main, develop ]
 
