@@ -59,7 +59,7 @@ cp .env.example .env
 1. Démarrer le backend
 ```bash
 cd backend
-pnpm run dev
+pnpm run start
 ```
 
 2. Démarrer le frontend

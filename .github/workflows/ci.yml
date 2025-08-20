@@ -1,0 +1,200 @@
+name: 🧪 Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Tests du Backend
+  backend-tests:
+    name: 🔧 Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:7-jammy
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: password123
+          MONGO_INITDB_DATABASE: cesi_zen_test
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: cesi-zen-code/backend-ts/package-lock.json
+
+      - name: 📥 Install backend dependencies
+        working-directory: cesi-zen-code/backend-ts
+        run: npm ci
+
+      - name: 🔍 Lint backend code
+        working-directory: cesi-zen-code/backend-ts
+        run: npm run lint
+
+      - name: 🏗️ Build backend
+        working-directory: cesi-zen-code/backend-ts
+        run: npm run build
+
+      - name: 🧪 Run backend tests
+        working-directory: cesi-zen-code/backend-ts
+        run: npm run test:coverage
+        env:
+          NODE_ENV: test
+          MONGODB_URI: mongodb://admin:password123@localhost:27017/cesi_zen_test?authSource=admin
+          JWT_ACCESS_SECRET: test-secret-access
+          JWT_REFRESH_SECRET: test-secret-refresh
+          CORS_ORIGIN: http://localhost:3000
+
+      - name: 📊 Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: cesi-zen-code/backend-ts/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+
+  # Tests du Frontend
+  frontend-tests:
+    name: 🎨 Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: cesi-zen-code/frontend/package-lock.json
+
+      - name: 📥 Install frontend dependencies
+        working-directory: cesi-zen-code/frontend
+        run: npm ci
+
+      - name: 🔍 Lint frontend code
+        working-directory: cesi-zen-code/frontend
+        run: npm run lint
+
+      - name: 🏗️ Build frontend
+        working-directory: cesi-zen-code/frontend
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:5000
+
+  # Tests d'intégration avec Docker
+  integration-tests:
+    name: 🔗 Integration Tests
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Build Docker images
+        run: |
+          docker-compose build --no-cache
+          
+      - name: 🚀 Start services
+        run: |
+          docker-compose up -d
+          sleep 30
+
+      - name: 🏥 Health check backend
+        run: |
+          curl -f http://localhost:5001/api/health || exit 1
+
+      - name: 🏥 Health check frontend
+        run: |
+          curl -f http://localhost:3001/ || exit 1
+
+      - name: 🧪 Run integration tests
+        run: |
+          # Test de création d'utilisateur
+          curl -X POST http://localhost:5001/api/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"firstName":"Test","lastName":"User","email":"test@example.com","password":"password123","dateOfBirth":"1990-01-01","ecole":"CESI","promotion":"2024","ville":"Test"}' \
+            || exit 1
+
+      - name: 🛑 Stop services
+        run: docker-compose down -v
+
+  # Analyse de qualité du code
+  code-quality:
+    name: 📋 Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run Super-Linter
+        uses: github/super-linter@v5
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_JAVASCRIPT_ES: true
+          VALIDATE_TYPESCRIPT_ES: true
+          VALIDATE_DOCKERFILE_HADOLINT: true
+          VALIDATE_YAML: true
+          VALIDATE_JSON: true
+
+  # Scan de sécurité
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 📊 Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Rapport de réussite global
+  ci-success:
+    name: ✅ CI Success
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, integration-tests, code-quality, security-scan]
+    if: success()
+
+    steps:
+      - name: 🎉 All checks passed
+        run: |
+          echo "🎉 Tous les tests CI sont passés avec succès !"
+          echo "✅ Backend tests: OK"
+          echo "✅ Frontend tests: OK" 
+          echo "✅ Integration tests: OK"
+          echo "✅ Code quality: OK"
+          echo "✅ Security scan: OK"

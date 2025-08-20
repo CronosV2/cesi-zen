@@ -1,0 +1,40 @@
+# Configuration partagée pour les workflows CI/CD
+# Ce fichier définit les variables et configurations communes
+
+name: 📋 Workflow Configuration
+
+# Variables globales réutilisables
+env:
+  # Versions
+  NODE_VERSION: '20'
+  DOCKER_BUILDX_VERSION: 'latest'
+  
+  # Registry
+  REGISTRY: ghcr.io
+  IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/cesi-zen
+  
+  # Environnements
+  STAGING_URL: 'https://cesi-zen-staging.yourdomain.com'
+  PRODUCTION_URL: 'https://cesi-zen.yourdomain.com'
+  
+  # Timeouts et retries
+  HEALTH_CHECK_TIMEOUT: '300'
+  HEALTH_CHECK_RETRIES: '5'
+  DEPLOYMENT_TIMEOUT: '600'
+
+# Ne s'exécute jamais, c'est juste pour la documentation
+on:
+  workflow_call:
+
+jobs:
+  config:
+    runs-on: ubuntu-latest
+    if: false  # Ce job ne s'exécute jamais
+    steps:
+      - name: 📋 Configuration Documentation
+        run: |
+          echo "Ce fichier contient la configuration partagée pour les workflows CI/CD"
+          echo "Variables disponibles :"
+          echo "- NODE_VERSION: ${{ env.NODE_VERSION }}"
+          echo "- REGISTRY: ${{ env.REGISTRY }}"
+          echo "- IMAGE_BASE: ${{ env.IMAGE_BASE }}"

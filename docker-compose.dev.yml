@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # Base de données MongoDB pour le développement
+  mongodb-dev:
+    image: mongo:7-jammy
+    container_name: cesi-zen-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-devuser}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-devpass123}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-cesi-zen-dev}
+    ports:
+      - "${MONGO_PORT:-27018}:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+      - mongodb_dev_config:/data/configdb
+    networks:
+      - cesi-zen-dev-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Backend en mode développement
+  backend-dev:
+    build:
+      context: ./cesi-zen-code/backend-ts
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: cesi-zen-backend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: ${BACKEND_PORT:-5001}
+      MONGODB_URI: mongodb://${MONGO_ROOT_USERNAME:-devuser}:${MONGO_ROOT_PASSWORD:-devpass123}@mongodb-dev:27017/${MONGO_DATABASE:-cesi-zen-dev}?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-key}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    ports:
+      - "${BACKEND_PORT:-5001}:5001"
+    volumes:
+      # Hot reload - monter le code source
+      - ./cesi-zen-code/backend-ts/src:/app/src:ro
+      - ./cesi-zen-code/backend-ts/package.json:/app/package.json:ro
+      - ./cesi-zen-code/backend-ts/tsconfig.json:/app/tsconfig.json:ro
+      # Exclure node_modules pour éviter les conflits
+      - /app/node_modules
+    depends_on:
+      mongodb-dev:
+        condition: service_healthy
+    networks:
+      - cesi-zen-dev-network
+    command: ["npm", "run", "dev"]
+
+  # Frontend en mode développement
+  frontend-dev:
+    build:
+      context: ./cesi-zen-code/frontend
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: cesi-zen-frontend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: ${FRONTEND_PORT:-3000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5001}
+      # Pour le hot reload Next.js
+      WATCHPACK_POLLING: true
+      CHOKIDAR_USEPOLLING: true
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      # Hot reload - monter le code source
+      - ./cesi-zen-code/frontend/src:/app/src:ro
+      - ./cesi-zen-code/frontend/public:/app/public:ro
+      - ./cesi-zen-code/frontend/package.json:/app/package.json:ro
+      - ./cesi-zen-code/frontend/next.config.ts:/app/next.config.ts:ro
+      - ./cesi-zen-code/frontend/tailwind.config.ts:/app/tailwind.config.ts:ro
+      - ./cesi-zen-code/frontend/tsconfig.json:/app/tsconfig.json:ro
+      - ./cesi-zen-code/frontend/postcss.config.mjs:/app/postcss.config.mjs:ro
+      # Exclure node_modules et .next pour éviter les conflits
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend-dev
+    networks:
+      - cesi-zen-dev-network
+    command: ["npm", "run", "dev"]
+
+  # Adminer pour la gestion de base de données (optionnel)
+  adminer:
+    image: adminer:latest
+    container_name: cesi-zen-adminer-dev
+    restart: unless-stopped
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    networks:
+      - cesi-zen-dev-network
+    profiles:
+      - with-adminer
+
+  # Redis pour le cache/sessions (optionnel pour plus tard)
+  redis-dev:
+    image: redis:7-alpine
+    container_name: cesi-zen-redis-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - cesi-zen-dev-network
+    profiles:
+      - with-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mongodb_dev_data:
+    driver: local
+  mongodb_dev_config:
+    driver: local
+  redis_dev_data:
+    driver: local
+
+networks:
+  cesi-zen-dev-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16 

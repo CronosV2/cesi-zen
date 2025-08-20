@@ -1,0 +1,27 @@
+# Dockerfile de développement pour le backend TypeScript
+FROM node:20-alpine AS development
+
+# Installer des outils de développement
+RUN apk add --no-cache curl wget
+
+# Définir le répertoire de travail
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package.json package-lock.json ./
+
+# Installer toutes les dépendances (dev + prod)
+RUN npm ci
+
+# Copier le code source
+COPY . .
+
+# Exposer le port
+EXPOSE 5001
+
+# Variables d'environnement pour le développement
+ENV NODE_ENV=development
+ENV PORT=5001
+
+# Commande de démarrage en mode développement (avec nodemon/ts-node)
+CMD ["npm", "run", "dev"] 
