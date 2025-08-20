@@ -45,6 +45,16 @@ const connectDB = async (): Promise<void> => {
   }
 };
 
+// Health check endpoint pour la CI/CD
+app.get('/api/health', (req: Request, res: Response) => {
+  res.status(200).json({ 
+    success: true, 
+    message: 'API is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
