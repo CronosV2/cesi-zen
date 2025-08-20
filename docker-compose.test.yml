@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # Base de données de test
+  mongodb-test:
+    image: mongo:7-jammy
+    container_name: cesi-zen-mongodb-test
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:-password123}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-cesi_zen_test}
+    ports:
+      - "${MONGODB_PORT:-27018}:27017"  # Port différent pour les tests
+    volumes:
+      - mongodb_test_data:/data/db
+    networks:
+      - cesi-zen-test-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend de test
+  backend-test:
+    build:
+      context: ./cesi-zen-code/backend-ts
+      dockerfile: Dockerfile
+    container_name: cesi-zen-backend-test
+    restart: unless-stopped
+    environment:
+      NODE_ENV: test
+      PORT: 5000
+      MONGODB_URI: mongodb://${MONGODB_USERNAME:-admin}:${MONGODB_PASSWORD:-password123}@mongodb-test:27017/${MONGODB_DATABASE:-cesi_zen_test}?authSource=admin
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-test-jwt-access-secret-key}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-test-jwt-refresh-secret-key}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3002}
+    ports:
+      - "${BACKEND_PORT:-5002}:5000"  # Port différent pour les tests
+    depends_on:
+      mongodb-test:
+        condition: service_healthy
+    networks:
+      - cesi-zen-test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend de test
+  frontend-test:
+    build:
+      context: ./cesi-zen-code/frontend
+      dockerfile: Dockerfile
+    container_name: cesi-zen-frontend-test
+    restart: unless-stopped
+    environment:
+      NODE_ENV: test
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5002}
+    ports:
+      - "${FRONTEND_PORT:-3002}:3000"  # Port différent pour les tests
+    depends_on:
+      backend-test:
+        condition: service_healthy
+    networks:
+      - cesi-zen-test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Interface MongoDB pour les tests
+  mongo-express-test:
+    image: mongo-express:latest
+    container_name: cesi-zen-mongo-express-test
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGODB_USERNAME:-admin}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGODB_PASSWORD:-password123}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGODB_USERNAME:-admin}:${MONGODB_PASSWORD:-password123}@mongodb-test:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGODB_USERNAME:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGODB_PASSWORD:-password123}
+    ports:
+      - "8082:8081"  # Port différent pour les tests
+    depends_on:
+      mongodb-test:
+        condition: service_healthy
+    networks:
+      - cesi-zen-test-network
+
+volumes:
+  mongodb_test_data:
+    driver: local
+
+networks:
+  cesi-zen-test-network:
+    driver: bridge
