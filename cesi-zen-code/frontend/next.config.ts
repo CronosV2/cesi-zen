@@ -5,11 +5,11 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // Désactiver ESLint pendant le build (pour éviter les erreurs de build Docker)
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
+    dirs: ['src']
   },
-  // Désactiver TypeScript strict checking pendant le build
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 };
 
