@@ -1,0 +1,146 @@
+name: 🏷️ Auto Versioning
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Type de version'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  auto-version:
+    name: 🔄 Auto Version & Tag
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Récupère tout l'historique pour les tags
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 🏷️ Get next version
+        id: version
+        run: |
+          # Récupérer le dernier tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Last tag: $LAST_TAG"
+          
+          # Extraire le numéro de version (sans le 'v')
+          VERSION=${LAST_TAG#v}
+          IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
+          MAJOR=${VERSION_PARTS[0]:-0}
+          MINOR=${VERSION_PARTS[1]:-0}
+          PATCH=${VERSION_PARTS[2]:-0}
+          
+          # Déterminer le type de version automatiquement ou manuellement
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION_TYPE="${{ github.event.inputs.version_type }}"
+          else
+            # Auto-détection basée sur le message de commit
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            if [[ $COMMIT_MSG == *"BREAKING CHANGE"* ]] || [[ $COMMIT_MSG == *"feat!"* ]]; then
+              VERSION_TYPE="major"
+            elif [[ $COMMIT_MSG == *"feat:"* ]] || [[ $COMMIT_MSG == *"feat("* ]]; then
+              VERSION_TYPE="minor"
+            else
+              VERSION_TYPE="patch"
+            fi
+          fi
+          
+          # Calculer la nouvelle version
+          case $VERSION_TYPE in
+            "major")
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            "minor")
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            "patch")
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+          echo "New version: $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version_type=$VERSION_TYPE" >> $GITHUB_OUTPUT
+
+      - name: 🎯 Create and push tag
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.version }}"
+          VERSION_TYPE="${{ steps.version.outputs.version_type }}"
+          
+          # Configurer Git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Créer le tag avec un message descriptif
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          TAG_MESSAGE="🏷️ Release $NEW_VERSION ($VERSION_TYPE)
+
+Changelog:
+$COMMIT_MSG
+
+Generated automatically by GitHub Actions"
+          
+          git tag -a $NEW_VERSION -m "$TAG_MESSAGE"
+          git push origin $NEW_VERSION
+          
+          echo "✅ Tag $NEW_VERSION créé et poussé"
+
+      - name: 📋 Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          release_name: Release ${{ steps.version.outputs.version }}
+          body: |
+            ## 🚀 Release ${{ steps.version.outputs.version }}
+            
+            **Type:** ${{ steps.version.outputs.version_type }}
+            
+            ### 📝 Changements
+            
+            ${{ github.event.head_commit.message }}
+            
+            ### 🔧 Installation
+            
+            ```bash
+            git checkout ${{ steps.version.outputs.version }}
+            # ou
+            docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+            ```
+            
+            ---
+            
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.version.outputs.version }}...HEAD
+          draft: false
+          prerelease: false
+
+      - name: 🎉 Success notification
+        run: |
+          echo "🎉 Version ${{ steps.version.outputs.version }} créée automatiquement !"
+          echo "📋 Release disponible sur : https://github.com/${{ github.repository }}/releases"
