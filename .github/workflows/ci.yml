@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+
 env:
   NODE_VERSION: '20'
 
@@ -167,6 +172,10 @@ jobs:
   security-scan:
     name: 🔒 Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
     steps:
       - name: 📦 Checkout code
@@ -177,14 +186,23 @@ jobs:
         with:
           scan-type: 'fs'
           scan-ref: '.'
+          format: 'table'
+          exit-code: '0'
+
+      - name: 🔍 Run Trivy vulnerability scanner (SARIF)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
 
       - name: 📊 Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && github.event_name == 'push'
         with:
           sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
 
   # Rapport de réussite global
   ci-success:
