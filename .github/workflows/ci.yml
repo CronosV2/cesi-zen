@@ -48,7 +48,7 @@ jobs:
 
       - name: 🔍 Lint backend code
         working-directory: cesi-zen-code/backend-ts
-        run: npm run lint || echo "Linting warnings found"
+        run: npm run lint || true
 
       - name: 🏗️ Build backend
         working-directory: cesi-zen-code/backend-ts
@@ -93,7 +93,7 @@ jobs:
 
       - name: 🔍 Lint frontend code
         working-directory: cesi-zen-code/frontend
-        run: npm run lint || echo "Linting warnings found"
+        run: npm run lint || true
 
       - name: 🏗️ Build frontend
         working-directory: cesi-zen-code/frontend
