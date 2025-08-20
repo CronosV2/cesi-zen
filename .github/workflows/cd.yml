@@ -127,11 +127,11 @@ jobs:
           # - Rolling restart des services
           # - Health checks
           
-          # Exemple avec docker-compose sur un serveur distant :
+          # Exemple avec docker compose sur un serveur distant :
           # ssh user@staging-server << 'EOF'
           # cd /path/to/cesi-zen
-          # docker-compose pull
-          # docker-compose up -d --force-recreate
+          # docker compose pull
+          # docker compose up -d --force-recreate
           # EOF
 
       - name: 🏥 Health check staging
