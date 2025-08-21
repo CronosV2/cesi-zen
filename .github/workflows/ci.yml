@@ -29,32 +29,24 @@ jobs:
           MONGO_INITDB_DATABASE: cesi_zen_test
         ports:
           - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
-      - name: 📦 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🟢 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: cesi-zen-code/backend-ts/package-lock.json
 
-      - name: 📥 Install dependencies
+      - name: Install dependencies
         working-directory: cesi-zen-code/backend-ts
         run: npm ci
 
-      - name: 🔍 Lint backend code
+      - name: Lint backend code
         working-directory: cesi-zen-code/backend-ts
         run: npm run lint || true
 
-      - name: 🧪 Run backend tests
+      - name: Run backend tests
         working-directory: cesi-zen-code/backend-ts
         run: npm run test
         env:
@@ -69,29 +61,29 @@ jobs:
 
   # Tests du Frontend
   frontend-tests:
-    name: 🎨 Frontend Tests
+    name: Frontend Tests
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📦 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🟢 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: cesi-zen-code/frontend/package-lock.json
 
-      - name: 📥 Install dependencies
+      - name: Install dependencies
         working-directory: cesi-zen-code/frontend
         run: npm ci
 
-      - name: 🔍 Lint frontend code
+      - name: Lint frontend code
         working-directory: cesi-zen-code/frontend
         run: npm run lint || true
 
-      - name: 🏗️ Build frontend
+      - name: Build frontend
         working-directory: cesi-zen-code/frontend
         run: npm run build
         env:
@@ -99,51 +91,51 @@ jobs:
 
   # Test Docker (optionnel - vérifie que docker-compose fonctionne)
   docker-build:
-    name: 🐳 Docker Build Test
+    name: Docker Build Test
     runs-on: ubuntu-latest
     needs: [backend-tests, frontend-tests]
 
     steps:
-      - name: 📦 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🐳 Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🏗️ Build Docker images
+      - name: Build Docker images
         run: |
           echo "🔨 Construction des images Docker..."
           docker compose build --no-cache
 
-      - name: 🚀 Start services (test)
+        - name: Start services (test)
         run: |
-          echo "🚀 Test de démarrage des services..."
+          echo " Test de démarrage des services..."
           docker compose up -d
           sleep 30
 
-      - name: 🏥 Health check
+      - name: Health check
         run: |
-          echo "🔍 Vérification que les services démarrent correctement..."
+          echo " Vérification que les services démarrent correctement..."
           curl -f http://localhost:5001/api/health || exit 1
           curl -f http://localhost:3001/ || exit 1
 
-      - name: 🛑 Stop services
+      - name: Stop services
         if: always()
         run: docker compose down -v
 
   # Rapport de réussite
   ci-success:
-    name: ✅ CI Success
+    name: CI Success
     runs-on: ubuntu-latest
     needs: [backend-tests, frontend-tests, docker-build]
     if: success()
 
     steps:
-      - name: 🎉 All checks passed
+      - name: All checks passed
         run: |
-          echo "🎉 Pipeline CI réussie !"
+          echo "Pipeline CI réussie !"
           echo "✅ Backend: lint + tests + build"
           echo "✅ Frontend: lint + build" 
           echo "✅ Docker: build + start test"
           echo ""
-          echo "📋 Prêt pour le déploiement !"
+          echo "Prêt pour le déploiement !"
