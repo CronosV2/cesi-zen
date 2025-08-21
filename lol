@@ -12,4 +12,4 @@ Décrivez clairement le comportement observé vs le comportement attendu.
 ##  Environnement
 - **Version** : [ex: v1.2.3]
 - **Environnement** : [Développement/Test/Production]
-- **Navigateur** : [Chrome, Firefox, Safari...]
+- **Navigateur** : [Chrome, Firefox, Safari...];
